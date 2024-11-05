@@ -15,8 +15,19 @@ def scale_gif(path, scale, new_path=None):
         new_frames = get_new_frames(gif, scale)
         save_new_gif(new_frames, old_gif_information, new_path)
     else:
-        gif = gif.resize(scale)
+        transWidth = transform_width(gif.width, gif.height)  
+        finalWidth = round(transWidth)
+        gif = gif.resize((720, finalWidth))
         gif.save(path)
+        
+def transform_width(width, height):
+    multiple = find_proportion(720, height)
+    return width * multiple
+
+
+def find_proportion(baseH, h):
+    return baseH/h
+     
 
 
 def get_new_frames(gif, scale):
@@ -26,6 +37,8 @@ def get_new_frames(gif, scale):
         gif.seek(frame)
         new_frame = Image.new('RGBA', gif.size)
         new_frame.paste(gif)
+        transWidth = transform_width(new_frame.width, new_frame.height)  
+        finalWidth = round(transWidth)
         new_frame = new_frame.resize(scale, Image.ANTIALIAS)
         new_frames.append(new_frame)
     return new_frames
@@ -42,4 +55,4 @@ def save_new_gif(new_frames, old_gif_information, new_path):
 
 
 if __name__ == "__main__":
-    scale_gif(f"Post-qtehpj.gif", (720,1280),"test.gif")
+    scale_gif(f"Post-qtehpj.gif", (1280,720),"test.gif")

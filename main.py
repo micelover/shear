@@ -49,8 +49,7 @@ while True:
     }
 
     print(video_data["title"])
-    print("Posting Video in 5 minutes...")
-    time.sleep(60 * 5)
+    print("Posting")
     upload_video(video_data)
 
     # Sleep until ready to post another video!
