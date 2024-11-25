@@ -13,44 +13,51 @@ import time
 from utils.CreateMovie import CreateMovie, GetDaySuffix
 from utils.RedditBot import RedditBot
 from utils.upload_video import upload_video
+import random
+
 
 #Create Reddit Data Bot
 redditbot = RedditBot()
 
 # Leave if you want to run it 24/7
-while True:
+# while True:
 
     # Gets our new posts pass if image related subs. Default is memes
-    posts = redditbot.get_posts("memes")
+posts = redditbot.get_posts("MemeVideos")
 
     # Create folder if it doesn't exist
-    redditbot.create_data_folder()
+redditbot.create_data_folder()
+num = 1
+print("mainFlag")
+# Go through posts and find 5 that will work for us.
+for post in posts:
+    redditbot.save_image(post)
+    print(num,"main.py", post)
+    num += 1
 
-    # Go through posts and find 5 that will work for us.
-    for post in posts:
-        redditbot.save_image(post)
+# Wanted a date in my titles so added this helper
+DAY = date.today().strftime("%d")
+DAY = str(int(DAY)) + GetDaySuffix(int(DAY))
+dt_string = date.today().strftime("%A %B") + f" {DAY}"
 
-    # Wanted a date in my titles so added this helper
-    DAY = date.today().strftime("%d")
-    DAY = str(int(DAY)) + GetDaySuffix(int(DAY))
-    dt_string = date.today().strftime("%A %B") + f" {DAY}"
+# Create the movie itself!
+CreateMovie.CreateMP4(redditbot.post_data)
 
-    # Create the movie itself!
-    CreateMovie.CreateMP4(redditbot.post_data)
+# Video info for YouTube.
+# This example uses the first post title.
+video_data = {
+        "file": "video.mp4",
+        "title": f"you laugh, you restart v{random.randint(1, 100)}",
+        "description": "#meme #memes #trynottolaugh #funny\nIf you own any of the videos and you want credit please comment!\n\nI make meme compilations of the best and funniest videos and clips i find on the internet, the dankest memes, unexpected and unusual memes, fails, perfectly cut screams, tiktok memes will be chaotically compiled for your entertainment in this meme comp that will make you laugh watching these unusual videos 💀\n\n\nBuisness: winninglogo@gmail.com",
+        "keywords":"meme,reddit,trynottolaugh,funny,memes",
+        "privacyStatus":"public"
+}
 
-    # Video info for YouTube.
-    # This example uses the first post title.
-    video_data = {
-            "file": "video.mp4",
-            "title": f"{redditbot.post_data[0]['title']} - Dankest memes and comments {dt_string}!",
-            "description": "#shorts\nGiving you the hottest memes of the day with funny comments!",
-            "keywords":"meme,reddit,Dankestmemes",
-            "privacyStatus":"public"
-    }
+# print(video_data["title"])
+print(f"you laugh, you restart v{random.randint(1, 100)}")
+print("Posting")
+# time.sleep(60 * 60 * 24 - 1)
+upload_video(video_data)
 
-    print(video_data["title"])
-    print("Posting")
-    upload_video(video_data)
+# Sleep until ready to post another video!
 
-    # Sleep until ready to post another video!
-    time.sleep(60 * 60 * 24 - 1)
