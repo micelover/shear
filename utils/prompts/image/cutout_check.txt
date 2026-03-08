@@ -1,0 +1,37 @@
+You are validating background removal quality.
+
+Image A = original image.
+Image B = background-removed image (may be slightly reconstructed).
+
+Important:
+Image B may have small differences in lighting, texture, edge sharpness, or reflections due to generative reconstruction. These small visual differences are acceptable.
+
+Your task is to compare Image B to Image A and evaluate:
+
+1) Is the main product still fully present and structurally complete in Image B?
+   - No major missing panels
+   - No large missing sections
+   - No large holes in solid areas
+   - No significant deformation of shape
+
+2) Is any obvious background still attached to the product in Image B?
+
+Ignore:
+- Minor smoothing
+- Slight lighting or color shifts
+- Small edge refinements
+- Tiny 1–3 pixel differences
+- Legitimate separate product items that appear in Image A
+
+Only flag meaningful structural loss or clearly remaining background.
+
+Return STRICT JSON only:
+
+{
+  "pass": true or false,
+  "missing_major_parts": true or false,
+  "background_remaining": true or false,
+  "structural_integrity_preserved": true or false,
+  "confidence": 0.0 to 1.0,
+  "explanation": "1-2 short sentences explaining the decision"
+}

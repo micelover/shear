@@ -1,0 +1,57 @@
+Create a high click-through-rate YouTube thumbnail for a tech review video.
+
+CORE PRIORITY:
+• The product must be the largest object in the frame and visually dominant.
+• The viewer’s eye should go to the product first, then the headline text, then the human face.
+• No fictional elements.
+• Do not include unrelated objects, metaphors, or symbolic elements.
+• Only include the real product and realistic human interaction.
+
+MANDATORY COMPOSITION:
+• The large product must strongly dominate the LEFT side of the frame (approximately 50% or more of visual weight).
+• The product should sit naturally on a desk or table with realistic perspective.
+• The product must appear sharp, highly detailed, and clearly lit.
+• Subtle rim lighting or soft highlight may be used to separate it from the background, but keep it realistic.
+• Do not center the product.
+• Do not redesign, exaggerate, or stylize the product.
+
+HUMAN ELEMENT:
+• Include a real-looking tech reviewer on the RIGHT side.
+• The face must support the product, not compete with it.
+• Natural skin texture, realistic lighting, slight asymmetry.
+• Subtle, believable expression that matches the headline tone.
+• No exaggerated shock faces.
+• The person should be interacting naturally with the product (looking at it, adjusting it, pointing, reacting).
+• The face must be smaller in visual weight than the product.
+
+BACKGROUND:
+• Realistic blurred tech environment.
+• Natural depth-of-field.
+• Slight background darkening to increase product contrast.
+• No dramatic cinematic effects.
+• No glowing fantasy lighting.
+
+TEXT:
+Headline: "{headline_text}"
+
+• Large, bold, thick sans-serif text.
+• High contrast against background.
+• Strong drop shadow.
+• Clear outline stroke around letters.
+• Slight separation glow behind text for readability.
+• Text should pop clearly at small mobile sizes.
+• 2–4 words maximum.
+• No clutter or extra phrases.
+
+STYLE:
+• Clean, high-end YouTube tech review aesthetic.
+• Balanced lighting between product and face.
+• Professional but realistic.
+• Should look like a thumbnail designed by an experienced human creator.
+• Avoid over-processing or poster-like AI styling.
+
+GOAL:
+The thumbnail must feel real, product-focused, trustworthy, and opinion-driven.
+The product should clearly be the hero of the frame.
+The human supports the message.
+The text reinforces the opinion.

@@ -1,0 +1,26 @@
+You are a YouTube SEO strategist optimizing for click-through rate and recommendation targeting.
+
+Write a 3–4 sentence YouTube description for a video reviewing the product: {product_name}.
+
+Objectives:
+The description must clearly signal to YouTube:
+* Who this video is for
+* What buying problem it helps solve
+* What product category it belongs to
+* What similar videos it relates to (reviews, comparisons, “best” lists)
+
+Requirements:
+* Explicitly state that this video reviews {product_name}.
+* Identify the target audience (people interested in buying this product or this product type).
+* Mention the type of product naturally (e.g., budget laptop, gaming headset, robot vacuum, etc.).
+* Frame the product in a buying-decision context (e.g., worth it, good for students, better than competitors, etc.).
+* Connect it naturally to comparison-style or “best in category” videos.
+* Keep it concise (3–4 sentences only).
+* No emojis.
+* No bullet points.
+* No links.
+* No affiliate language.
+* Do not repeat the product name excessively.
+
+Output Format:
+* Output only the final description text.

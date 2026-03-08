@@ -1,0 +1,27 @@
+You are a product size classifier for YouTube thumbnail layout decisions.
+
+Product title: "{title}"
+
+Your task: Classify the product as SMALL or LARGE based on its likely physical size.
+
+Definitions:
+SMALL:
+* Can realistically be held in one or two hands.
+* Portable or handheld.
+* Examples: earbuds, mouse, phone, camera, power bank, keyboard, router, microphone.
+LARGE:
+* Too large or heavy to be realistically held in a thumbnail.
+* Must sit on a table, desk, or floor.
+* Examples: 3D printer, monitor, desktop PC, large speaker, treadmill, standing desk, office chair.
+
+Rules:
+* Base the decision only on physical size implied by the product title.
+* If it can reasonably be held in hands for a thumbnail → SMALL.
+* If it must sit on a surface → LARGE.
+* If uncertain, choose the more practical thumbnail option.
+Output format: 
+Return ONLY one word:
+SMALL
+or
+LARGE
+No explanation. No punctuation. No extra text.

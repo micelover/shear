@@ -1,0 +1,1 @@
+Remove the entire background. Output as PNG with transparent background. Do not replace with white.

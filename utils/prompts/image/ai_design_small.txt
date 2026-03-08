@@ -1,0 +1,42 @@
+Create a high click-through-rate YouTube thumbnail scene for a tech review video using strong foreground/background depth.
+The image must look like a real photo captured during filming — spontaneous, natural, and believable. It must not look like a graphic design poster or an AI render.
+FRAME COMPOSITION
+Design the image with a left-heavy layout.
+The product must appear in the left third of the frame, leaving open space in the upper-left area where headline text could be added later.
+LEFT SIDE — FOREGROUND PRODUCT
+• Product extremely close to the camera lens
+ • Occupies roughly 25–30% of frame width
+ • Clearly the sharpest object in the image
+ • Held casually in one hand
+ • Slight natural tilt allowed
+ • Visible material texture and realistic detail
+ • Product must separate from background using true depth of field, not glow effects
+ • The product should visually outweigh the hand, but not dominate the entire frame
+ • The product should sit slightly below the vertical center of the frame
+ • The product must feel physically closer to the viewer than the person behind it
+RIGHT SIDE — BACKGROUND HUMAN
+• Person positioned behind the product on the right side
+ • Face softly blurred due to shallow depth of field
+ • Person pointing toward the product
+ • Expression subtle and believable:
+ quiet realization, mild regret, thoughtful skepticism, or impressed surprise
+ • No exaggerated YouTube face
+ • Lighting must match the product and feel natural
+ • The human should support the product visually and not compete with it
+CAMERA & REALISM
+The image should feel like it was shot on a 50mm lens at f/1.8–f/2.8 indoors.
+• Realistic shallow depth of field
+ • Natural indoor lighting (window light or soft room light)
+ • Slight natural shadows
+ • Natural skin texture and small imperfections
+ • No cinematic color grading
+ • No HDR look
+ • No artificial glow
+ • No extreme sharpening
+ • Very subtle vignette allowed
+VISUAL PRIORITY (STRICT ORDER)
+1. Product
+2. Facial reaction
+
+The viewer should notice the product first, then the human reaction.
+The composition should leave clear empty space in the upper-left portion of the frame so headline text can be added later without covering the product or the person.

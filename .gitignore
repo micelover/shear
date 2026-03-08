@@ -1,8 +1,32 @@
-/env
-.env
-/data
-__pycache__
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+venv/
+shearenv/
+
+# OAuth / API secrets
+token.json
 client_secrets.json
-*.json
-*.mp4
-video.mp4
+*.env
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python build files
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/

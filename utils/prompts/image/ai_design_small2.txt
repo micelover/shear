@@ -1,0 +1,69 @@
+Create a high click-through-rate YouTube thumbnail for a tech review video.
+
+CORE PRIORITY:
+• The small product must be the largest and most visually dominant object.
+• The viewer’s eye must go to the product first, then the headline text.
+• The product must visually outweigh the hands.
+• The product must clearly separate from the background.
+• No fictional elements.
+• Do not include unrelated objects, metaphors, or symbolic elements.
+• Only include the real product and realistic human hands.
+
+MANDATORY COMPOSITION:
+• This layout is ONLY for small products.
+• The product must be held naturally in one or two hands.
+• The product must occupy the LEFT side of the frame.
+• The product must be larger in visual weight than the hands.
+• Do not center the product.
+• Do not redesign or stylize the product.
+
+PRODUCT VISUAL IMPACT (VERY IMPORTANT):
+• The product must be the brightest and most contrast-rich object in the frame.
+• Increase sharpness and clarity on the product only.
+• Add subtle rim lighting or edge lighting around the product to separate it from the background.
+• Slight background blur increase behind the product.
+• Slight background darkening behind the product.
+• Ensure strong contrast between product edges and background.
+• The product must not blend into similar-colored background areas.
+• If background is dark, ensure product highlights are brighter.
+• If product is dark, ensure background behind it is lighter.
+• Clear edge definition around the product silhouette.
+
+HUMAN REALISM:
+• Only hands visible — no face.
+• Natural skin texture with subtle imperfections.
+• Realistic shadows between fingers.
+• Casual grip — not posed.
+• Balanced lighting consistent with the environment.
+• Hands must not visually overpower the product.
+
+BACKGROUND:
+• Realistic blurred home desk or tech setup.
+• Natural depth-of-field.
+• Stronger blur directly behind product.
+• Slight vignette to subtly focus attention toward product.
+• No neon glow or cinematic fantasy lighting.
+
+TEXT:
+Headline: "{headline_text}"
+
+• Large, bold, thick sans-serif font.
+• High contrast color.
+• Strong outline stroke.
+• Strong drop shadow.
+• Clear separation from background.
+• 2–4 words maximum.
+• Instantly readable at mobile size.
+
+STYLE:
+• Clean, authentic YouTube tech review aesthetic.
+• Product-first lighting hierarchy.
+• Realistic shadows and depth.
+• Slight natural imperfections allowed.
+• Avoid over-processed AI poster styling.
+
+GOAL:
+The product must immediately stand out and feel like the focal point.
+It must not visually merge with the background.
+The hands add realism and scale without overpowering it.
+The text reinforces a strong opinion clearly.
