@@ -3,30 +3,76 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.py[cod]
+*$py.class
 
 # Virtual environments
 env/
 venv/
 shearenv/
-
-# OAuth / API secrets
-token.json
-client_secrets.json
-*.env
-.env
-
-# OS files
-.DS_Store
-Thumbs.db
+.venv/
 
 # Python build files
 build/
 dist/
 *.egg-info/
+.eggs/
+*.egg
+
+# Package manager
+pip-wheel-metadata/
 
 # Logs
 *.log
 
+# Coverage / testing
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
 # IDE
 .vscode/
 .idea/
+
+# Secrets / API keys
+.env
+*.env
+token.json
+client_secrets.json
+*.key
+*.pem
+
+# Model weights / ML files
+*.pt
+*.pth
+*.onnx
+*.ckpt
+*.safetensors
+
+# Dataset / large files
+data/
+datasets/
+models/
+outputs/
+
+# Temporary media
+*.mp4
+*.mov
+*.avi
+*.png
+*.jpg
+*.jpeg
+
+# Mac temp files
+._*
+
+# pipreqs output (optional)
+requirements_backup.txt
