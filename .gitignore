@@ -74,5 +74,22 @@ outputs/
 # Mac temp files
 ._*
 
+# Models
+asset/
+*.pt
+*.pth
+*.safetensors
+
+# Generated media
+data/
+*.mp4
+*.wav
+*.png
+*.jpg
+
+# ML weights
+weights/
+models/
+
 # pipreqs output (optional)
 requirements_backup.txt
