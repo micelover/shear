@@ -147,7 +147,7 @@ def label_img(box, thumbnail_path=f"{DATA_PATH}thumbnail.png"):
     cv2.imwrite(thumbnail_path, img)
     return img
 
-def create_ai_design1(product, images):
+def create_ai_design1(product, images, product_type):
     product_title = product.title
 
     # Classify size
@@ -177,7 +177,7 @@ def create_ai_design1(product, images):
     if classify == "SMALL":
         center, box = detect_product(
             thumbnail_path,
-            "smart ring"
+            product_type
         )
         
         label_img(box, thumbnail_path=thumbnail_path)

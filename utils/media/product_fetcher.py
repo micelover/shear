@@ -1,362 +1,267 @@
 from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
 from utils.core.settings import CATEGORY_POOL, KEYWORD_AMOUNT
 from utils.core.edit import open_ai_generation, robust_json_loads
-from utils.media.product_model import ProductItem
+from utils.core.product_model import ProductItem
 
 import os
-from dotenv import load_dotenv
-import requests
-import ast
 import re
+import ast
 import json
+import random
+import logging
+from typing import Optional
+from dataclasses import dataclass
+
 import requests
 from bs4 import BeautifulSoup
-import random
-
-
-
+from dotenv import load_dotenv
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
-class ProductFetcher():
+ASIN_RE = re.compile(r"/dp/([A-Z0-9]{10})|/gp/product/([A-Z0-9]{10})")
+
+@dataclass
+class RawProduct:
+    title: str
+    url: str
+
+
+class ProductFetcher:
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
+        self.serpapi_key = os.getenv("SERPAPI_API_KEY")
+        self._prompts = self._load_prompts()
 
-        self.SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+    # ------------------------------------------------------------------ #
+    #  Setup                                                               #
+    # ------------------------------------------------------------------ #
 
-        with open(f'{UTILS_PATH}/prompts/simplify_titles.txt', 'r') as file:
-            self.orignial_simplify_titles_prompt = file.read()
+    def _load_prompts(self) -> dict[str, str]:
+        names = ["simplify_titles", "product_selector", "product_type", "keyword"]
+        prompts = {}
+        for name in names:
+            path = f"{UTILS_PATH}/prompts/{name}.txt"
+            with open(path) as f:
+                prompts[name] = f.read()
+        return prompts
 
-        with open(f'{UTILS_PATH}/prompts/product_selector.txt', 'r') as file:
-            self.orignial_product_selector_prompt = file.read()
+    def _prompt(self, name: str, **replacements) -> str:
+        """Return a prompt template with all {placeholders} replaced."""
+        text = self._prompts[name]
+        for key, value in replacements.items():
+            text = text.replace(f"{{{key}}}", str(value))
+        return text
 
-        with open(f'{UTILS_PATH}/prompts/keyword.txt', 'r') as file:
-            self.orignial_keyword_prompt = file.read()
+    # ------------------------------------------------------------------ #
+    #  Amazon helpers                                                      #
+    # ------------------------------------------------------------------ #
 
-    def generate_affiliate_link(self, asin, affiliate_tag):
-        return f"https://www.amazon.com/dp/{asin}?tag={affiliate_tag}"
+    @staticmethod
+    def _extract_asin(url: str) -> Optional[str]:
+        m = ASIN_RE.search(url)
+        return (m.group(1) or m.group(2)) if m else None
 
-    def search_movers_shakers(self, serpapi_key):
+    @staticmethod
+    def _affiliate_link(asin: str, tag: str = "logostudios-20") -> str:
+        return f"https://www.amazon.com/dp/{asin}?tag={tag}"
 
+    @staticmethod
+    def _pick_category(pool: list[dict]) -> str:
+        names = [c["name"] for c in pool]
+        weights = [c["weight"] for c in pool]
+        return random.choices(names, weights=weights, k=1)[0]
+
+    # ------------------------------------------------------------------ #
+    #  SerpApi calls                                                        #
+    # ------------------------------------------------------------------ #
+
+    def _serpapi_get(self, params: dict, timeout: int = 10) -> dict:
+        """Thin wrapper around SerpApi with unified error handling."""
+        params["api_key"] = self.serpapi_key
+        try:
+            resp = requests.get("https://serpapi.com/search", params=params, timeout=timeout)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as exc:
+            logger.error("SerpApi request failed (engine=%s): %s", params.get("engine"), exc)
+            return {}
+
+    def search_featured(self, category: str) -> list[RawProduct]:
+        data = self._serpapi_get({
+            "engine": "amazon",
+            "amazon_domain": "amazon.com",
+            "k": category,
+            "sort_by": "featured",
+        })
+        seen: set[str] = set()
+        products: list[RawProduct] = []
+
+        for item in data.get("organic_results", [])[:10]:
+            asin = item.get("asin")
+            title = item.get("title")
+            url = item.get("link")
+            if asin and title and url and asin not in seen:
+                seen.add(asin)
+                products.append(RawProduct(title=title, url=url))
+
+        return products
+
+    def search_movers_shakers(self) -> list[RawProduct]:
         CATEGORY_CONFIG = [
             {
                 "name": "electronics",
-                "google_query": 'site:amazon.com "Movers & Shakers" electronics "gp/movers-and-shakers"',
-                "limit": 10
+                "query": 'site:amazon.com "Movers & Shakers" electronics "gp/movers-and-shakers"',
+                "limit": 10,
             },
             {
                 "name": "computers_accessories",
-                "google_query": 'site:amazon.com "Movers & Shakers" "Computers & Accessories" "gp/movers-and-shakers"',
-                "limit": 5
-            }
+                "query": 'site:amazon.com "Movers & Shakers" "Computers & Accessories" "gp/movers-and-shakers"',
+                "limit": 5,
+            },
         ]
 
-        all_results = []
-        seen_asins = set()
-        seen_urls = set()
-        seen_titles = set()
+        all_products: list[RawProduct] = []
+        seen_asins: set[str] = set()
+        seen_urls: set[str] = set()
+        seen_titles: set[str] = set()
 
-        def normalize_title(t: str) -> str:
+        def _normalize(t: str) -> str:
             return t.lower().strip().replace("-", "").replace(",", "")
 
-        asin_re = re.compile(r"/dp/([A-Z0-9]{10})|/gp/product/([A-Z0-9]{10})")
-
-        for category in CATEGORY_CONFIG:
-
-            google_params = {
-                "engine": "google",
-                "q": category["google_query"],
-                "api_key": serpapi_key,
-                "num": 5,
-            }
-
-            try:
-                g = requests.get(
-                    "https://serpapi.com/search",
-                    params=google_params,
-                    timeout=15
-                ).json()
-            except Exception as e:
-                print(f"Google request failed for {category['name']}: {e}")
-                continue
-
-            organic = g.get("organic_results", []) or []
+        for cat in CATEGORY_CONFIG:
+            data = self._serpapi_get({"engine": "google", "q": cat["query"], "num": 5}, timeout=15)
+            organic = data.get("organic_results") or []
             if not organic:
-                print(f"No Google results for {category['name']}")
+                logger.warning("No Google results for category: %s", cat["name"])
                 continue
 
-            target_url = None
-            cached_url = None
-
-            for r in organic:
-                link = r.get("link", "")
-                if "amazon.com" in link and "movers-and-shakers" in link:
-                    target_url = link
-                    cached_url = r.get("cached_page_link")
-                    break
-
-            if not target_url:
-                target_url = organic[0].get("link")
-
-            page_url_to_fetch = cached_url or target_url
+            # Prefer an actual Amazon movers page; fall back to first result
+            page_url = next(
+                (r.get("cached_page_link") or r.get("link")
+                 for r in organic
+                 if "amazon.com" in r.get("link", "") and "movers-and-shakers" in r.get("link", "")),
+                organic[0].get("link"),
+            )
+            if not page_url:
+                continue
 
             try:
-                html = requests.get(
-                    page_url_to_fetch,
-                    timeout=20,
-                    headers={"User-Agent": "Mozilla/5.0"}
-                ).text
-            except Exception as e:
-                print(f"Failed HTML fetch for {category['name']}: {e}")
+                html = requests.get(page_url, timeout=20, headers={"User-Agent": "Mozilla/5.0"}).text
+            except Exception as exc:
+                logger.error("HTML fetch failed for %s: %s", cat["name"], exc)
                 continue
 
             soup = BeautifulSoup(html, "html.parser")
-
-            candidates = []
+            count = 0
 
             for a in soup.find_all("a", href=True):
+                if count >= cat["limit"]:
+                    break
+
                 href = a["href"]
-                m = asin_re.search(href)
+                m = ASIN_RE.search(href)
                 if not m:
                     continue
 
                 asin = m.group(1) or m.group(2)
-
-                title = a.get_text(" ", strip=True)
-
-                if not title:
-                    img = a.find("img")
-                    if img and img.get("alt"):
-                        title = img["alt"].strip()
-
+                title = a.get_text(" ", strip=True) or (a.find("img") or {}).get("alt", "").strip()
                 if not title or len(title) < 6:
                     continue
 
-                if href.startswith("/"):
-                    url = "https://www.amazon.com" + href.split("?")[0]
-                else:
-                    url = href.split("?")[0]
+                url = ("https://www.amazon.com" + href if href.startswith("/") else href).split("?")[0]
+                norm = _normalize(title)
 
-                candidates.append((asin, title, url))
-
-            count = 0
-
-            for asin, title, url in candidates:
-                norm = normalize_title(title)
-
-                if asin in seen_asins:
-                    continue
-                if url in seen_urls:
-                    continue
-                if norm in seen_titles:
+                if asin in seen_asins or url in seen_urls or norm in seen_titles:
                     continue
 
                 seen_asins.add(asin)
                 seen_urls.add(url)
                 seen_titles.add(norm)
-
-                all_results.append({
-                    "title": title,
-                    "url": url,
-                })
-
+                all_products.append(RawProduct(title=title, url=url))
                 count += 1
-                if count >= category["limit"]:
-                    break
 
-        return all_results
-    
-    def search_featured(self, category, serpapi_key):
-
-        params = {
-            "engine": "amazon",
-            "amazon_domain": "amazon.com",
-            "k": category,
-            "api_key": serpapi_key,
-            "sort_by": "featured"
-        }
-
-        try:
-            response = requests.get(
-                "https://serpapi.com/search",
-                params=params,
-                timeout=10
-            )
-            data = response.json()
-        except Exception as e:
-            print(f"Request failed: {e}")
-            return []
-
-        results = data.get("organic_results", [])
-        if not results:
-            return []
-
-        seen_asins = set()
-        products = []
-
-        for item in results[:10]:
-            asin = item.get("asin")
-            title = item.get("title")
-            url = item.get("link")
-
-            if not asin or not title or not url:
-                continue
-
-            if asin in seen_asins:
-                continue
-
-            seen_asins.add(asin)
-
-            products.append({
-                "title": title,
-                "url": url
-            })
-
-        return products
-            
-    def pick_category(self, category_pool):
-        categories = [c["name"] for c in category_pool]
-        weights = [c["weight"] for c in category_pool]
-
-        chosen = random.choices(categories, weights=weights, k=1)[0]
-        return chosen
-    
-    def search_catagory(self, serpapi_key):
-        catagory = self.pick_category(CATEGORY_POOL)
-        print(catagory)
-        all_products = self.search_featured(catagory, serpapi_key)
         return all_products
-        
 
-    def fetch_product_details(self, url, serpapi_key, affiliate_tag="logostudios-20"):
-        """
-        Given an Amazon URL:
-        - Extract ASIN
-        - Fetch title + price via SerpApi Amazon engine
-        - Generate affiliate link
-        """
-
-        # -------- 1️⃣ Extract ASIN --------
-        asin_match = re.search(r"/dp/([A-Z0-9]{10})|/gp/product/([A-Z0-9]{10})", url)
-        if not asin_match:
-            print("ASIN not found in URL")
+    def fetch_product_details(self, url: str, affiliate_tag: str = "logostudios-20") -> Optional[dict]:
+        asin = self._extract_asin(url)
+        if not asin:
+            logger.error("ASIN not found in URL: %s", url)
             return None
 
-        asin = asin_match.group(1) or asin_match.group(2)
-
-        # -------- 2️⃣ Query SerpApi Amazon Engine --------
-        params = {
-            "engine": "amazon",
-            "amazon_domain": "amazon.com",
-            "k": asin,  # search directly by ASIN
-            "api_key": serpapi_key
-        }
-
-        try:
-            response = requests.get(
-                "https://serpapi.com/search",
-                params=params,
-                timeout=10
-            )
-            data = response.json()
-        except Exception as e:
-            print(f"SerpApi request failed: {e}")
-            return None
-
+        data = self._serpapi_get({"engine": "amazon", "amazon_domain": "amazon.com", "k": asin})
         results = data.get("organic_results", [])
         if not results:
-            print("No product results returned.")
+            logger.warning("No results for ASIN: %s", asin)
             return None
 
-        # Usually first result matches ASIN search
         item = results[0]
-
-        title = item.get("title")
-        price = item.get("price")
-
-        affiliate_link = self.generate_affiliate_link(asin, affiliate_tag)
-
         return {
             "asin": asin,
-            "title": title,
-            "price": price,
+            "title": item.get("title"),
+            "price": item.get("price"),
             "url": url,
-            "affiliate_link": affiliate_link
+            "affiliate_link": self._affiliate_link(asin, affiliate_tag),
         }
-    
-    def _simplify_titles(self, fetched_products):
-        fetched_products = json.dumps(fetched_products)
-        simplify_titles_prompt = self.orignial_simplify_titles_prompt.replace("{PRODUCT_ARRAY}", str(fetched_products))
-        response = open_ai_generation(simplify_titles_prompt, model="gpt-5-mini", temperature=0)
-        response = response.strip()
-        print("response:", response)
 
-        simple_products = robust_json_loads(response)
+    # ------------------------------------------------------------------ #
+    #  AI steps                                                            #
+    # ------------------------------------------------------------------ #
 
-        return simple_products 
-    
-    def _find_best_product(self, product_arr):
-        product_arr = json.dumps(product_arr)
-        product_selector_prompt = self.orignial_product_selector_prompt.replace("{PRODUCT_ARRAY}", str(product_arr))
-        response = open_ai_generation(product_selector_prompt, model="gpt-5-mini", temperature=0)
-        response = response.strip()
-        
-        selected = robust_json_loads(response)
+    def _ai(self, prompt_name: str, model: str = "gpt-4o-mini",
+            temperature: float = 0, **replacements) -> str:
+        prompt = self._prompt(prompt_name, **replacements)
+        return open_ai_generation(prompt, model=model, temperature=temperature).strip()
 
-        return selected 
+    def _simplify_titles(self, products: list[RawProduct]) -> list[dict]:
+        raw = json.dumps([{"title": p.title, "url": p.url} for p in products])
+        response = self._ai("simplify_titles", PRODUCT_ARRAY=raw)
+        return robust_json_loads(response)
 
-            
-    def generate_keywords(self, product):
-        keyword_prompt = (self.orignial_keyword_prompt
-            .replace("{product}", product)
-            .replace("{low}", KEYWORD_AMOUNT["low"])
-            .replace("{high}", KEYWORD_AMOUNT["high"])
+    def _find_best_products(self, product_arr: list[dict]) -> list[dict]:
+        response = self._ai("product_selector", PRODUCT_ARRAY=json.dumps(product_arr))
+        return robust_json_loads(response)
+
+    def classify_product(self, product: str) -> None:
+        self.pipeline.product_type = self._ai("product_type", product_name=product, temperature=0.7)
+
+    def generate_keywords(self, product: str) -> None:
+        response = self._ai(
+            "keyword",
+            temperature=0.2,
+            product=product,
+            low=KEYWORD_AMOUNT["low"],
+            high=KEYWORD_AMOUNT["high"],
         )
-        keyword_str = open_ai_generation(keyword_prompt, model="gpt-5-mini", temperature=0.2)
-        keyword_arr = ast.literal_eval(keyword_str)
+        self.pipeline.keywords = ast.literal_eval(response)
 
+    # ------------------------------------------------------------------ #
+    #  Main entry point                                                    #
+    # ------------------------------------------------------------------ #
 
-        self.pipeline.keywords = keyword_arr
+    def _fetch_raw_products(self) -> list[RawProduct]:
+        if random.random() < 0.75:
+            category = self._pick_category(CATEGORY_POOL)
+            logger.info("Searching featured products in category: %s", category)
+            return self.search_featured(category)
+        logger.info("Searching Movers & Shakers")
+        return self.search_movers_shakers()
 
-    def GetProduct(self):     
-        # # raw_results = self.search_catagory(self.SERPAPI_API_KEY)
-        # raw_results = self.search_movers_shakers(self.SERPAPI_API_KEY)
+    def GetProduct(self) -> None:
+        raw_results = self._fetch_raw_products()
+        logger.debug("Raw results: %s", raw_results)
 
-        # # if random.random() < 0.5:
-        # #     raw_results = self.search_catagory(self.SERPAPI_API_KEY)
-        # # else:
-        # #     raw_results = self.search_movers_shakers(self.SERPAPI_API_KEY)
-        # print("raw_results:", raw_results)
+        simple_products = self._simplify_titles(raw_results)
+        logger.debug("Simplified: %s", simple_products)
 
-        # simple_products = self._simplify_titles(raw_results)
-        # print("simple_products:", simple_products)
+        best_products = self._find_best_products(simple_products)
+        chosen = random.choice(best_products)
 
-        # best_products = self._find_best_product(simple_products)
+        details = self.fetch_product_details(chosen["url"])
+        if not details:
+            raise RuntimeError(f"Could not fetch details for {chosen['url']}")
 
-        # chosen_product = random.choice(best_products)
-
-        # product_info = self.fetch_product_details(chosen_product["url"], self.SERPAPI_API_KEY)
-        # combined = chosen_product | product_info
-        # print("combined:", combined)
-
-        # combined = ProductItem(title='Bambu Lab P1S 3D Printer, Fully Enclosed, Support Up to 16 Colors/Multi Materials, 500mm/s Fast Printing & High Precision, CoreXY & Auto Bed Leveling, Ready-to-Use FDM 3D Printers Large Print Size', simple_title='Bambu Lab P1S 3D Printer', price='$449.00', asin='B0CHDM8VVZ', url='https://www.amazon.com/P1S-Enclosed-Materials-Printing-Precision/dp/B0CHDM8VVZ/ref=sr_1_6?dib=eyJ2IjoiMSJ9.hII_b9f0CnDiVQDdIho_7Cj1ptrONhulhq9eoan4HS5viitl0KrcP2N35tf8Q4OIfLB3ddC2E-q_bHKPf19wqDHk5S-1B2YF_jFUYK1wBATgWV3D8nUSThaMiJZm3zvyGa-2q3y73N1jLREzRfyKE2MN2v_E55SRHHh_FsT8Afa-2LucfPC8wwON6eSnxV8BTGTMh0GJyFkcg55Rs6Yi1zXeYth8xMwFrG6_I7z0i0A.1uGSiFzzmvuA6jealDUC2Cc5Rf8sI-dhFS5XXoOvQ_g&dib_tag=se&keywords=3D+Printers&qid=1772159785&sr=8-6', affiliate_link='https://www.amazon.com/dp/B0CHDM8VVZ?tag=logostudios-20')
-        combined = {'url': 'https://www.amazon.com/Oura-Ring-Ceramic-Cloud-Before/dp/B0FKQZ3QDB/ref=zg_bsms_g_electronics_d_sccl_8/145-1241867-4089513', 'simple_title': 'Oura Ring 4 Ceramic Cloud', 'asin': 'B0FKQZ3QDB', 'title': 'Oura Ring 4 Ceramic Cloud - Size 4 - Size Before You Buy', 'price': '$499.00', 'affiliate_link': 'https://www.amazon.com/dp/B0FKQZ3QDB?tag=logostudios-20'}
-        allowed_fields = ProductItem.__annotations__.keys()
-
-        filtered = {k: v for k, v in combined.items() if k in allowed_fields}
-
-        self.pipeline.product = ProductItem(**filtered)
-
-        return None      
-            
-
-
-
-
-
-
-
-
-
-
+        combined = {**chosen, **details}
+        allowed = ProductItem.__annotations__.keys()
+        self.pipeline.product = ProductItem(**{k: v for k, v in combined.items() if k in allowed})

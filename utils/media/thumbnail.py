@@ -10,6 +10,7 @@ from PIL import Image
 import gc
 import random
 import torch
+import os
 
 
 
@@ -53,7 +54,7 @@ def design2(product):
         output_path=f"{DATA_PATH}/thumbnail.png"
     )
 
-def ai_design(product):
+def ai_design(product, product_type):
     img_info = THUMBNAIL_IMG_COUNT['ai_design']
 
     all_img = get_images(product, fetch_count=img_info[0], num_images=img_info[1], workers=4)
@@ -65,19 +66,39 @@ def ai_design(product):
 
     create_ai_design1(
         product,
-        chosen_imgs
+        chosen_imgs,
+        product_type
     )
 
 
-def generate_thumbnail(product, product_names=None):  
-    design_name = "design1"
+def compress_thumbnail(thumbnail_path):
+    max_size = 2 * 1024 * 1024  # 2MB
+    if os.path.getsize(thumbnail_path) <= max_size:
+        return
+
+    img = Image.open(thumbnail_path)
+    # Resize to 1280x720 if larger
+    if img.width > 1280 or img.height > 720:
+        img.thumbnail((1280, 720), Image.Resampling.LANCZOS)
+
+    # Save optimized PNG
+    img.save(thumbnail_path, 'PNG', optimize=True)
+
+    # If still >2MB, convert to JPEG
+    if os.path.getsize(thumbnail_path) > max_size:
+        img.save(thumbnail_path.replace('.png', '.jpg'), 'JPEG', quality=85)
+        os.rename(thumbnail_path.replace('.png', '.jpg'), thumbnail_path)
+
+
+def generate_thumbnail(pipeline):  
 
     # design1(product)
     # design2(product)
-    ai_design(product)
+    ai_design(pipeline.product, pipeline.product_type)
+
+    compress_thumbnail(f"{DATA_PATH}/thumbnail.png")
 
     gc.collect()    
-    return design_name
 
 
 

@@ -49,6 +49,7 @@ token.json
 client_secrets.json
 *.key
 *.pem
+.secrets/
 
 # Model weights / ML files
 *.pt

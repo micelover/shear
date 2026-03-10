@@ -20,7 +20,6 @@ CATEGORY_POOL = [
     {"name": "USB Microphones", "weight": 7},
     {"name": "Dash Cams", "weight": 9},
     {"name": "Smart Doorbells", "weight": 9},
-    {"name": "Portable Power Stations", "weight": 10},
     {"name": "Security Cameras", "weight": 9},
 ]
 
@@ -37,11 +36,11 @@ BACKGROUND_LIMITS = {
     "LIMIT_VIDEOS": 3,
     "YOUTUBE_LIMIT": 2,
 
-    # "LIMIT_IMG": 1,
-    # "LIMIT_WEBPAGES": 10,
+    # "LIMIT_IMG": 3,
+    # "LIMIT_WEBPAGES": 5,
 
-    # "LIMIT_FETCH_VIDEOS": 16,
-    # "LIMIT_VIDEOS": 3,
+    # "LIMIT_FETCH_VIDEOS": 3,
+    # "LIMIT_VIDEOS": 1,
     # "YOUTUBE_LIMIT": 1,
 }
 
