@@ -148,7 +148,7 @@ class Visual():
             preset="ultrafast",
             bitrate="6000k",
             audio=False,
-            threads=4,
+            threads=os.cpu_count(),
         )
 
         # part_video.close()
