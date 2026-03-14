@@ -1,5 +1,6 @@
 from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
 from utils.core.settings import THUMBNAIL_IMG_COUNT
+from utils.core.models import release_dino
 from utils.thumbnail.design1 import create_design1
 from utils.thumbnail.design2 import create_design2
 from utils.thumbnail.ai_design1 import create_ai_design1
@@ -95,6 +96,7 @@ def generate_thumbnail(pipeline):
     # design1(product)
     # design2(product)
     ai_design(pipeline.product, pipeline.product_type)
+    release_dino()  # free ~800MB immediately after DINO is done
 
     compress_thumbnail(f"{DATA_PATH}/thumbnail.png")
 

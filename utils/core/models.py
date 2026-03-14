@@ -66,6 +66,16 @@ def get_grounding_dino():
     return _dino_model, _dino_processor
 
 
+def release_dino():
+    """Free only the Grounding DINO model from memory."""
+    global _dino_model, _dino_processor
+    _dino_model = None
+    _dino_processor = None
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def release_models():
     """Free all cached ML models from memory."""
     global _yolo, _clip_model, _clip_processor, _dino_model, _dino_processor
