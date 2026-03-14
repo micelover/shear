@@ -18,7 +18,7 @@ load_dotenv()
 class MediaFetcher():
 
     def __init__(self):
-        self.SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+        self.SERPAPI_API_KEY = os.getenv("SHEARS_SERPAPI_API_KEY")
 
         self.SESSION = requests.Session()
         self.SESSION.headers.update({"User-Agent": "Mozilla/5.0"})

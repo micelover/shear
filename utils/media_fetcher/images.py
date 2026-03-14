@@ -13,7 +13,7 @@ from io import BytesIO
 
 load_dotenv()
 
-SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+SERPAPI_API_KEY = os.getenv("SHEARS_SERPAPI_API_KEY")
 
 SESSION = requests.Session()
 SESSION.headers.update({"User-Agent": "Mozilla/5.0"})

@@ -36,12 +36,12 @@ BACKGROUND_LIMITS = {
     "LIMIT_VIDEOS": 3,
     "YOUTUBE_LIMIT": 2,
 
-    # "LIMIT_IMG": 3,
-    # "LIMIT_WEBPAGES": 5,
+    # "LIMIT_IMG": 5,
+    # "LIMIT_WEBPAGES": 0,
 
-    # "LIMIT_FETCH_VIDEOS": 3,
-    # "LIMIT_VIDEOS": 1,
-    # "YOUTUBE_LIMIT": 1,
+    # "LIMIT_FETCH_VIDEOS": 0,
+    # "LIMIT_VIDEOS": 0,
+    # "YOUTUBE_LIMIT": 0,
 }
 
 PART_DURATION = {"low": "2", "high": "4"}
