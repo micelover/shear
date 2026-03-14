@@ -7,7 +7,7 @@ groq==1.0.0
 moviepy==2.2.1
 numpy==2.2.6
 openai==2.14.0
-Pillow==12.1.1
+Pillow==11.1.0
 protobuf==4.25.3
 pydub==0.25.1
 pysrt==1.1.2
