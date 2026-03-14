@@ -230,16 +230,19 @@ def choose_clip_intro(
 
     for i in range(max_tries):
         path = random.choice(videos)
-        vid = VideoFileClip(path)
 
         vid_duration = get_duration(path)
         if vid_duration is None or vid_duration < duration:
             continue
 
-        start = random.uniform(0, vid_duration - duration)
-        end = start + duration
+        vid = VideoFileClip(path)
+        try:
+            start = random.uniform(0, vid_duration - duration)
+            end = start + duration
 
-        score = score_window(vid, start, duration, keywords)
+            score = score_window(vid, start, duration, keywords)
+        finally:
+            vid.close()
 
         if score > best_score:
             best_score = score
@@ -273,27 +276,34 @@ def choose_clip_body(
             continue
 
         vid = VideoFileClip(path)
+        accepted = None
+        try:
+            # Try multiple attempts per video to avoid overlap
+            for _ in range(3):  # try 3 random windows per video
+                start = random.uniform(0, vid_duration - duration)
+                end = start + duration
 
-        # Try multiple attempts per video to avoid overlap
-        for _ in range(3):  # try 3 random windows per video
-            start = random.uniform(0, vid_duration - duration)
-            end = start + duration
+                # 🔥 Skip if overlapping
+                if overlaps_existing(path, start, end, USED_WINDOWS):
+                    continue
 
-            # 🔥 Skip if overlapping
-            if overlaps_existing(path, start, end, USED_WINDOWS):
-                continue
+                score = score_window(vid, start, duration, keywords)
 
-            score = score_window(vid, start, duration, keywords)
+                # Track best
+                if score > best_score:
+                    best_score = score
+                    best = (path, start, end)
 
-            # Track best
-            if score > best_score:
-                best_score = score
-                best = (path, start, end)
+                # Immediate accept if above threshold
+                if score >= threshold:
+                    accepted = (path, start, end)
+                    break
+        finally:
+            vid.close()
 
-            # Immediate accept if above threshold
-            if score >= threshold:
-                USED_WINDOWS.setdefault(path, []).append((start, end))
-                return (path, start, end)
+        if accepted:
+            USED_WINDOWS.setdefault(accepted[0], []).append((accepted[1], accepted[2]))
+            return accepted
 
     # Fallback = best non-overlapping clip
     if best:
@@ -394,16 +404,13 @@ def choose_clip_body(
     # return None
     
 def make_video_clip(path, start, end, duration, current_time, size):
-    vid = VideoFileClip(path)
-
-    clip = (
-        vid.subclipped(start, end)
+    return (
+        VideoFileClip(path)
+        .subclipped(start, end)
         .resized(height=size[1])
         .with_position(("center", "center"))
         .with_duration(duration)
         .with_start(current_time)
     )
-
-    return clip
 
 

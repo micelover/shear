@@ -106,6 +106,9 @@ class Audio():
 
         concatenate_audio = concatenate_audioclips(all_parts)
         concatenate_audio.write_audiofile(paths['audio'])
+        concatenate_audio.close()
+        for part in all_parts:
+            part.close()
 
         self._generate_subtitles(paths['audio'], word_save_path=paths['words_srt'], sentence_save_path=paths['sentences_srt'])
 

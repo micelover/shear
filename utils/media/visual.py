@@ -3,7 +3,7 @@ from utils.visual.video_clip import choose_clip_intro, choose_clip_body, make_vi
 from utils.visual.link_overlay import create_link_overlay
 from utils.visual.part.product_overlay import dual_slide_overlay
 from utils.visual.specs_overlay import create_specs
-from utils.visual.subtitles import create_subtitle_video
+from utils.visual.subtitles import create_subtitle_clips
 from utils.core.edit import get_audio_duration, open_ai_generation, find_videos, find_images
 from utils.core.settings import PART_DURATION
 
@@ -133,13 +133,14 @@ class Visual():
         print(images, valid_videos)
         all_clips = self.select_clips(audio_duration, segment_data, images, valid_videos)
         link_overlay = create_link_overlay(words_srt_path)
-        spec_overlays, sound_effects = create_specs(words_srt_path, start=0) 
+        spec_overlays, sound_effects = create_specs(words_srt_path, start=0)
+        subtitle_clips = create_subtitle_clips(self.video_size[1], words_srt_path, start_time=0, size=self.video_size)
 
-
-        # body = CompositeVideoClip([background, *body_clips, *spec_overlays], size=self.video_size)
-        visual_clip = CompositeVideoClip([background, *all_clips, link_overlay, *spec_overlays], size=self.video_size)
-
-        visual_clip = create_subtitle_video(visual_clip, words_srt_path, start_time=0, size=self.video_size)
+        # Single flat CompositeVideoClip — no nested composites
+        visual_clip = CompositeVideoClip(
+            [background, *all_clips, link_overlay, *spec_overlays, *subtitle_clips],
+            size=self.video_size
+        )
 
         visual_clip.write_videofile(
             visual_save_path, 
