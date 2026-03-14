@@ -7,7 +7,7 @@ groq==1.0.0
 moviepy==2.2.1
 numpy==2.2.6
 openai==2.14.0
-Pillow==11.1.0
+Pillow==11.3.0
 protobuf==4.25.3
 pydub==0.25.1
 pysrt==1.1.2
@@ -18,6 +18,6 @@ google-search-results==2.4.2
 torch==2.9.1
 transformers==4.57.3
 ultralytics==8.4.21
-whisper==1.1.10
+openai-whisper==20250625
 yt_dlp==2026.3.3
 opencv-python==4.12.0.88
