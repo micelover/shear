@@ -57,7 +57,7 @@ def assemble_intro(audio_path, visual_path, output_path):
     visual = VideoFileClip(visual_path)
 
     final = visual.with_audio(audio).with_duration(audio.duration)
-    final.write_videofile(output_path, codec="libx264", fps=32, threads=2, preset="ultrafast")
+    final.write_videofile(output_path, codec="libx264", fps=32, threads=os.cpu_count(), preset="ultrafast")
 
 def add_audio_to_visual(audio_path, visual_path, output_path):
     audio = AudioFileClip(audio_path)
@@ -66,7 +66,7 @@ def add_audio_to_visual(audio_path, visual_path, output_path):
     visual = VideoFileClip(visual_path)
 
     final = visual.with_audio(audio).with_duration(audio.duration)
-    final.write_videofile(output_path, codec="libx264", fps=32, threads=2, preset="ultrafast")
+    final.write_videofile(output_path, codec="libx264", fps=32, threads=os.cpu_count(), preset="ultrafast")
 
 def add_part_sfx(audio_path, sound_effects, output_path):
     original_audio = AudioFileClip(audio_path)

@@ -1,7 +1,7 @@
 from utils.core.config import DEVICE
 
 from pysrt import SubRipFile, SubRipItem, SubRipTime
-import whisper
+from faster_whisper import WhisperModel
 import uuid
 import requests
 from PIL import Image, ImageFont
@@ -21,6 +21,7 @@ from pydub import AudioSegment
 import io
 import base64
 import re
+import gc
 
 
 
@@ -547,8 +548,24 @@ def create_srt_from_transcription(result, return_words=True, return_sentences=Fa
     return output
 
 def transcribe_audio(audio_file):
-    model = whisper.load_model("base")
-    result = model.transcribe(audio_file, word_timestamps=True)
+    model = WhisperModel("tiny", device="cpu", compute_type="int8")
+    segments, _ = model.transcribe(audio_file, word_timestamps=True)
+
+    # Normalise to the same dict format expected by create_srt_from_transcription
+    result = {"segments": []}
+    for seg in segments:
+        result["segments"].append({
+            "start": seg.start,
+            "end": seg.end,
+            "text": seg.text,
+            "words": [
+                {"start": w.start, "end": w.end, "word": w.word}
+                for w in (seg.words or [])
+            ],
+        })
+
+    del model
+    gc.collect()
     return result
     
 def delete_folder_files(folder):

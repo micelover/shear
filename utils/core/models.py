@@ -1,3 +1,4 @@
+import gc
 import torch
 from ultralytics import YOLO
 from transformers import (
@@ -63,3 +64,16 @@ def get_grounding_dino():
             p.requires_grad = False
 
     return _dino_model, _dino_processor
+
+
+def release_models():
+    """Free all cached ML models from memory."""
+    global _yolo, _clip_model, _clip_processor, _dino_model, _dino_processor
+    _yolo = None
+    _clip_model = None
+    _clip_processor = None
+    _dino_model = None
+    _dino_processor = None
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
