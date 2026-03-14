@@ -141,7 +141,15 @@ class Visual():
 
         visual_clip = create_subtitle_video(visual_clip, words_srt_path, start_time=0, size=self.video_size)
 
-        visual_clip.write_videofile(visual_save_path, fps=32, codec="libx264", threads=2, preset="ultrafast")
+        visual_clip.write_videofile(
+            visual_save_path, 
+            fps=24, 
+            codec="libx264", 
+            preset="ultrafast",
+            bitrate="6000k",
+            audio=False,
+            threads=4,
+        )
 
         # part_video.close()
 

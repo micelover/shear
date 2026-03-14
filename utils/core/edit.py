@@ -27,12 +27,12 @@ import re
 
 
 load_dotenv()
-groq_api_key = os.getenv("GROQ_API_KEY")
-openAI_api_key = os.getenv("OPENAI_API_KEY")
+groq_api_key = os.getenv("SHEARS_GROQ_API_KEY")
+openAI_api_key = os.getenv("SHEARS_OPENAI_API_KEY")
 
-inworld_api_key = os.getenv("INWORLD_API_KEY")
+inworld_api_key = os.getenv("SHEARS_INWORLD_API_KEY")
 
-serpapi_api_key = os.getenv("SERPAPI_API_KEY")
+serpapi_api_key = os.getenv("SHEARS_SERPAPI_API_KEY")
 
 SESSION = requests.Session()
 SESSION.headers.update({"User-Agent": "Mozilla/5.0"})

@@ -6,7 +6,7 @@ from utils.core.edit import open_ai_generation, open_ai_edit_img
 import cv2
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import math
 
 
@@ -45,14 +45,25 @@ def detect_product(image_path, prompt):
     boxes = results["boxes"]
     scores = results["scores"]
 
+    # First, try to find boxes with high confidence (> 0.3)
     filtered_boxes = []
 
     for box, score in zip(boxes, scores):
         if score > 0.3:
             filtered_boxes.append(box)
 
+    # If no high-confidence boxes, use all detections and pick the best one
     if len(filtered_boxes) == 0:
-        return None
+        if len(boxes) == 0:
+            # No detections at all - return default closest fit (center of image)
+            w, h = image.size
+            cx = w // 2
+            cy = h // 2
+            best_box = (w // 4, h // 4, 3 * w // 4, 3 * h // 4)
+            return (cx, cy), best_box
+        # Use the box with the highest score
+        best_score_idx = scores.argmax()
+        filtered_boxes = [boxes[best_score_idx]]
 
     best_box = None
     best_area = 0
@@ -70,81 +81,75 @@ def detect_product(image_path, prompt):
 
     return (cx, cy), best_box
 
-def label_img(box, thumbnail_path=f"{DATA_PATH}thumbnail.png"):
-    img = cv2.imread(thumbnail_path)
-    h, w = img.shape[:2]
+def add_thumbnail_text(product_box, thumbnail_path=f"{DATA_PATH}/thumbnail.png"):
+    # Load image with PIL
+    img = Image.open(thumbnail_path).convert("RGB")
+    w, h = img.size
+    
+    text_top = "I WAS"
+    text_bottom = "WRONG"
 
-    x1, y1, x2, y2 = map(int, box)
+    # Load Impact font
+    font_path = f"{SOURCE_PATH}/font/Impact-Font/impact.ttf"
+    # make text smaller relative to image dimensions
+    font_size_top = int(max(w, h) / 12)
+    font_size_bottom = int(max(w, h) / 11)
 
-    def clamp(v, lo, hi):
-        return max(lo, min(v, hi))
+    font_top = ImageFont.truetype(font_path, font_size_top)
+    font_bottom = ImageFont.truetype(font_path, font_size_bottom)
 
-    # --- Arrow tip: top-left corner of product ---
-    tip = np.array([x1 + 20, y1 + 20], dtype=np.float32)
+    x1, y1, x2, y2 = product_box
 
-    # --- Arrow tail: upper-left area of frame ---
-    tail_anchor = np.array([
-        clamp(int(w * 0.08), 40, x1 - 120),
-        clamp(int(h * 0.12), 40, y1 - 80)
-    ], dtype=np.float32)
+    margin_x = int(x1)
+    margin_y = int(y2 + h * 0.03)
 
-    # --- Direction from tail to tip ---
-    direction = tip - tail_anchor
-    norm = np.linalg.norm(direction)
-    if norm > 1e-6:
-        direction /= norm
-    perp = np.array([-direction[1], direction[0]], dtype=np.float32)
+    # Create drawing context
+    draw = ImageDraw.Draw(img)
+    
+    # Add outline effect for both text elements
+    outline_width = 5
+    
+    # --- Top line (yellow with black outline) ---
+    for adj_x in range(-outline_width, outline_width + 1):
+        for adj_y in range(-outline_width, outline_width + 1):
+            if adj_x != 0 or adj_y != 0:
+                draw.text(
+                    (margin_x + adj_x, margin_y + adj_y),
+                    text_top,
+                    font=font_top,
+                    fill=(0, 0, 0)  # black outline
+                )
+    
+    draw.text(
+        (margin_x, margin_y),
+        text_top,
+        font=font_top,
+        fill=(0, 255, 255)  # yellow
+    )
 
-    # --- Arrowhead dimensions ---
-    head_length = 40
-    head_width = 44
-    shaft_thickness = 18
-    shaft_length = 80
+    # --- Bottom line (white with black outline) ---
+    bottom_y = margin_y + font_size_top + 20
+    
+    for adj_x in range(-outline_width, outline_width + 1):
+        for adj_y in range(-outline_width, outline_width + 1):
+            if adj_x != 0 or adj_y != 0:
+                draw.text(
+                    (margin_x + adj_x, bottom_y + adj_y),
+                    text_bottom,
+                    font=font_bottom,
+                    fill=(0, 0, 0)  # black outline
+                )
+    
+    draw.text(
+        (margin_x, bottom_y),
+        text_bottom,
+        font=font_bottom,
+        fill=(255, 255, 255)  # white
+    )
 
-    # head_base is where wings meet the shaft
-    head_base = tip - direction * head_length
-
-    # Shorter shaft: tail starts shaft_length back from head_base
-    tail = head_base - direction * shaft_length
-
-    # Arrowhead wing points
-    left_pt  = head_base + perp * (head_width / 2)
-    right_pt = head_base - perp * (head_width / 2)
-
-    color = (255, 255, 255)
-
-    SS = 4
-    big = cv2.resize(img, (w * SS, h * SS), interpolation=cv2.INTER_CUBIC)
-
-    def scale(pt):
-        return (int(pt[0] * SS), int(pt[1] * SS))
-
-    # --- Draw shaft (tail → head_base) with rounded cap ---
-    cv2.line(big, scale(tail), scale(head_base), color, shaft_thickness * SS // 2, cv2.LINE_AA)
-    cv2.circle(big, scale(tail), shaft_thickness * SS // 4, color, -1, cv2.LINE_AA)
-
-    # --- Draw arrowhead as two angled lines meeting at tip ---
-    wing_thickness = shaft_thickness * SS // 2
-    cv2.line(big, scale(tip), scale(left_pt),  color, wing_thickness, cv2.LINE_AA)
-    cv2.line(big, scale(tip), scale(right_pt), color, wing_thickness, cv2.LINE_AA)
-
-    img = cv2.resize(big, (w, h), interpolation=cv2.INTER_AREA)
-
-    # --- Text above the tail (no shadow) ---
-    text = "I WAS WRONG"
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = max(w, h) / 580
-    text_thickness = max(2, int(font_scale * 3.2))
-
-    (text_w, text_h), _ = cv2.getTextSize(text, font, font_scale, text_thickness)
-
-    text_x = clamp(int(tail[0]) - text_w // 2, 20, w - text_w - 20)
-    text_y = clamp(int(tail[1]) - 40, text_h + 20, h - 20)
-
-    cv2.putText(img, text, (text_x, text_y), font, font_scale,
-                (255, 255, 255), text_thickness, cv2.LINE_AA)
-
-    cv2.imwrite(thumbnail_path, img)
+    # Convert back to BGR for cv2 compatibility if needed
+    img_cv2 = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    cv2.imwrite(thumbnail_path, img_cv2)
     return img
 
 def create_ai_design1(product, images, product_type):
@@ -174,10 +179,13 @@ def create_ai_design1(product, images, product_type):
     open_ai_edit_img(ai_prompt, images, thumbnail_path)
     crop_to_16_9(thumbnail_path, thumbnail_path)
 
-    if classify == "SMALL":
-        center, box = detect_product(
-            thumbnail_path,
-            product_type
-        )
+    # if classify == "SMALL":
+    #     detection_result = detect_product(
+    #         thumbnail_path,
+    #         product_type
+    #     )
         
-        label_img(box, thumbnail_path=thumbnail_path)
+    #     # Only label if detection was successful
+    #     if detection_result is not None:
+    #         center, box = detection_result
+    #         add_thumbnail_text(box, thumbnail_path=thumbnail_path)

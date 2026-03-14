@@ -1,4 +1,4 @@
-from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
+from utils.core.config import UTILS_PATH
 from utils.core.settings import CATEGORY_POOL, KEYWORD_AMOUNT
 from utils.core.edit import open_ai_generation, robust_json_loads
 from utils.core.product_model import ProductItem
@@ -11,10 +11,11 @@ import random
 import logging
 from typing import Optional
 from dataclasses import dataclass
+from urllib.parse import unquote
 
 import requests
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from datetime import datetime, timezone
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -23,23 +24,32 @@ ASIN_RE = re.compile(r"/dp/([A-Z0-9]{10})|/gp/product/([A-Z0-9]{10})")
 
 @dataclass
 class RawProduct:
+    asin: str
     title: str
     url: str
-
 
 class ProductFetcher:
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
-        self.serpapi_key = os.getenv("SERPAPI_API_KEY")
+        self.serpapi_key = os.getenv("SHEARS_SERPAPI_API_KEY")
         self._prompts = self._load_prompts()
 
     # ------------------------------------------------------------------ #
-    #  Setup                                                               #
+    #  Setup                                                             #
     # ------------------------------------------------------------------ #
 
+    def load_used_asins(self, path=f"{UTILS_PATH}/media/used_products.json"):
+        if not os.path.exists(path):
+            return set()
+
+        with open(path) as f:
+            data = json.load(f)
+
+        return {p["asin"] for p in data}
+
     def _load_prompts(self) -> dict[str, str]:
-        names = ["simplify_titles", "product_selector", "product_type", "keyword"]
+        names = ["simplify_titles", "product_type", "keyword"]
         prompts = {}
         for name in names:
             path = f"{UTILS_PATH}/prompts/{name}.txt"
@@ -53,14 +63,21 @@ class ProductFetcher:
         for key, value in replacements.items():
             text = text.replace(f"{{{key}}}", str(value))
         return text
-
+        
     # ------------------------------------------------------------------ #
     #  Amazon helpers                                                      #
     # ------------------------------------------------------------------ #
 
     @staticmethod
     def _extract_asin(url: str) -> Optional[str]:
+        # First try direct search
         m = ASIN_RE.search(url)
+        if m:
+            return m.group(1) or m.group(2)
+        
+        # If not found, try URL-decoding (handles click-tracking URLs with encoded parameters)
+        decoded_url = unquote(url)
+        m = ASIN_RE.search(decoded_url)
         return (m.group(1) or m.group(2)) if m else None
 
     @staticmethod
@@ -88,13 +105,19 @@ class ProductFetcher:
             logger.error("SerpApi request failed (engine=%s): %s", params.get("engine"), exc)
             return {}
 
-    def search_featured(self, category: str) -> list[RawProduct]:
+    def search_category(self, category: str) -> list[RawProduct]:
+        sort_by = random.choice(["featured", "review_rank", "best_sellers", "date-desc-rank"])
+        logger.info("Sorting products by: %s", sort_by)
+
+        used_asins = self.load_used_asins()
+
         data = self._serpapi_get({
             "engine": "amazon",
             "amazon_domain": "amazon.com",
             "k": category,
-            "sort_by": "featured",
+            "sort_by": sort_by,
         })
+
         seen: set[str] = set()
         products: list[RawProduct] = []
 
@@ -102,87 +125,22 @@ class ProductFetcher:
             asin = item.get("asin")
             title = item.get("title")
             url = item.get("link")
-            if asin and title and url and asin not in seen:
-                seen.add(asin)
-                products.append(RawProduct(title=title, url=url))
+
+            if not asin or not title or not url:
+                continue
+
+            # skip duplicates in this search
+            if asin in seen:
+                continue
+
+            # skip products already used in past videos
+            if asin in used_asins:
+                continue
+
+            seen.add(asin)
+            products.append(RawProduct(asin=asin, title=title, url=url))
 
         return products
-
-    def search_movers_shakers(self) -> list[RawProduct]:
-        CATEGORY_CONFIG = [
-            {
-                "name": "electronics",
-                "query": 'site:amazon.com "Movers & Shakers" electronics "gp/movers-and-shakers"',
-                "limit": 10,
-            },
-            {
-                "name": "computers_accessories",
-                "query": 'site:amazon.com "Movers & Shakers" "Computers & Accessories" "gp/movers-and-shakers"',
-                "limit": 5,
-            },
-        ]
-
-        all_products: list[RawProduct] = []
-        seen_asins: set[str] = set()
-        seen_urls: set[str] = set()
-        seen_titles: set[str] = set()
-
-        def _normalize(t: str) -> str:
-            return t.lower().strip().replace("-", "").replace(",", "")
-
-        for cat in CATEGORY_CONFIG:
-            data = self._serpapi_get({"engine": "google", "q": cat["query"], "num": 5}, timeout=15)
-            organic = data.get("organic_results") or []
-            if not organic:
-                logger.warning("No Google results for category: %s", cat["name"])
-                continue
-
-            # Prefer an actual Amazon movers page; fall back to first result
-            page_url = next(
-                (r.get("cached_page_link") or r.get("link")
-                 for r in organic
-                 if "amazon.com" in r.get("link", "") and "movers-and-shakers" in r.get("link", "")),
-                organic[0].get("link"),
-            )
-            if not page_url:
-                continue
-
-            try:
-                html = requests.get(page_url, timeout=20, headers={"User-Agent": "Mozilla/5.0"}).text
-            except Exception as exc:
-                logger.error("HTML fetch failed for %s: %s", cat["name"], exc)
-                continue
-
-            soup = BeautifulSoup(html, "html.parser")
-            count = 0
-
-            for a in soup.find_all("a", href=True):
-                if count >= cat["limit"]:
-                    break
-
-                href = a["href"]
-                m = ASIN_RE.search(href)
-                if not m:
-                    continue
-
-                asin = m.group(1) or m.group(2)
-                title = a.get_text(" ", strip=True) or (a.find("img") or {}).get("alt", "").strip()
-                if not title or len(title) < 6:
-                    continue
-
-                url = ("https://www.amazon.com" + href if href.startswith("/") else href).split("?")[0]
-                norm = _normalize(title)
-
-                if asin in seen_asins or url in seen_urls or norm in seen_titles:
-                    continue
-
-                seen_asins.add(asin)
-                seen_urls.add(url)
-                seen_titles.add(norm)
-                all_products.append(RawProduct(title=title, url=url))
-                count += 1
-
-        return all_products
 
     def fetch_product_details(self, url: str, affiliate_tag: str = "logostudios-20") -> Optional[dict]:
         asin = self._extract_asin(url)
@@ -215,14 +173,54 @@ class ProductFetcher:
         return open_ai_generation(prompt, model=model, temperature=temperature).strip()
 
     def _simplify_titles(self, products: list[RawProduct]) -> list[dict]:
-        raw = json.dumps([{"title": p.title, "url": p.url} for p in products])
+        raw = json.dumps([
+            {
+                "asin": p.asin,
+                "title": p.title,
+                "url": p.url
+            }
+            for p in products
+        ])
+
         response = self._ai("simplify_titles", PRODUCT_ARRAY=raw)
-        return robust_json_loads(response)
 
-    def _find_best_products(self, product_arr: list[dict]) -> list[dict]:
-        response = self._ai("product_selector", PRODUCT_ARRAY=json.dumps(product_arr))
-        return robust_json_loads(response)
+        def _fallback_results() -> list[dict]:
+            logger.warning("Falling back to raw product titles due to invalid GPT JSON")
+            return [
+                {
+                    "asin": p.asin,
+                    "title": p.title,
+                    "url": p.url,
+                    "clean_title": p.title,
+                    "simple_title": p.title,
+                    "isValid": True,
+                }
+                for p in products
+            ]
 
+        try:
+            results = robust_json_loads(response)
+            if isinstance(results, list):
+                return results
+        except Exception as exc:
+            logger.warning("simplify_titles parse failed, attempting repair: %s", exc)
+
+        repair_prompt = (
+            "Fix this into strict valid JSON only. Return a JSON array of objects and nothing else. "
+            "Preserve all fields and values exactly as much as possible.\n\n"
+            f"{response}"
+        )
+
+        try:
+            repaired = open_ai_generation(repair_prompt, model="gpt-4o-mini", temperature=0)
+            repaired_results = robust_json_loads(repaired)
+            if isinstance(repaired_results, list):
+                return repaired_results
+        except Exception as exc:
+            logger.warning("simplify_titles repair parse failed: %s", exc)
+
+        return _fallback_results()
+    
     def classify_product(self, product: str) -> None:
         self.pipeline.product_type = self._ai("product_type", product_name=product, temperature=0.7)
 
@@ -236,32 +234,62 @@ class ProductFetcher:
         )
         self.pipeline.keywords = ast.literal_eval(response)
 
+    def save_used_product(self, asin, clean_title, path=f"{UTILS_PATH}/media/used_products.json"):
+        data = []
+
+        if os.path.exists(path):
+            with open(path) as f:
+                data = json.load(f)
+
+        data.append({
+            "asin": asin,
+            "clean_title": clean_title
+        })
+
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+
     # ------------------------------------------------------------------ #
     #  Main entry point                                                    #
     # ------------------------------------------------------------------ #
 
     def _fetch_raw_products(self) -> list[RawProduct]:
-        if random.random() < 0.75:
-            category = self._pick_category(CATEGORY_POOL)
-            logger.info("Searching featured products in category: %s", category)
-            return self.search_featured(category)
-        logger.info("Searching Movers & Shakers")
-        return self.search_movers_shakers()
-
+        category = self._pick_category(CATEGORY_POOL)
+        logger.info("Searching featured products in category: %s", category)
+        return self.search_category(category)
+    
     def GetProduct(self) -> None:
         raw_results = self._fetch_raw_products()
         logger.debug("Raw results: %s", raw_results)
 
         simple_products = self._simplify_titles(raw_results)
-        logger.debug("Simplified: %s", simple_products)
 
-        best_products = self._find_best_products(simple_products)
-        chosen = random.choice(best_products)
+        valid_products = [p for p in simple_products if p.get("isValid")]
+
+        if not valid_products:
+            raise RuntimeError("GPT returned no valid reviewable products")
+
+        logger.debug("valid_products: %s", valid_products)
+
+        chosen = random.choice(valid_products)
 
         details = self.fetch_product_details(chosen["url"])
         if not details:
             raise RuntimeError(f"Could not fetch details for {chosen['url']}")
 
         combined = {**chosen, **details}
+
+        combined["simple_title"] = (
+            combined.get("simple_title")
+            or combined.get("clean_title")
+            or combined.get("title")
+        )
+        combined["clean_title"] = combined.get("clean_title") or combined["simple_title"]
+
+        # save to used_products.json
+        self.save_used_product(combined["asin"], combined["clean_title"])
+
         allowed = ProductItem.__annotations__.keys()
-        self.pipeline.product = ProductItem(**{k: v for k, v in combined.items() if k in allowed})
+        self.pipeline.product = ProductItem(
+            **{k: v for k, v in combined.items() if k in allowed}
+        )

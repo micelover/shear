@@ -6,7 +6,7 @@ import os
 
 load_dotenv()
 
-SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+SERPAPI_API_KEY = os.getenv("SHEARS_SERPAPI_API_KEY")
 
 
 def get_google_videos(query, num=20, hl="en", gl="us"):

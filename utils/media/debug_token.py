@@ -1,8 +1,10 @@
 import json
 from datetime import datetime
 
-with open("token.json", "r") as f:
-    token_data = json.load(f)
+from utils.media.paths import get_youtube_token
+
+token_content = get_youtube_token()
+token_data = json.loads(token_content)
 
 print("=== TOKEN DEBUG ===")
 print(f"Has refresh_token: {'refresh_token' in token_data}")

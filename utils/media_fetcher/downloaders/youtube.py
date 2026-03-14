@@ -1,5 +1,6 @@
 from __future__ import annotations
 from utils.core.edit import generate_uuid_name
+from utils.media.paths import get_youtube_cookies
 
 import dataclasses
 import json
@@ -212,8 +213,10 @@ class YouTubeDownloader:
         self.work_root = os.getenv("YTDLP_WORK_ROOT", "/tmp/ytdlp_work")
         self.temp_root = os.getenv("YTDLP_TEMP_ROOT", "/tmp/ytdlp_tmp")
 
-        # Cookies (mount from Secret Manager as a file; never bake into image)
-        self.cookies_path = os.getenv("YTDLP_COOKIES_FILE", "").strip() or None
+        # Load cookies: flexible based on environment
+        # For local: set YTDLP_COOKIES_FILE=/path/to/cookies.txt
+        # For Cloud Run: set YTDLP_COOKIES_SECRET=youtube_cookies
+        self.cookies_path = self._load_cookies()
 
         # Retry policy
         self.max_attempts = _env_int("YTDLP_MAX_ATTEMPTS", 4)
@@ -242,6 +245,24 @@ class YouTubeDownloader:
         os.makedirs(self.work_root, exist_ok=True)
         os.makedirs(self.temp_root, exist_ok=True)
 
+    def _load_cookies(self) -> Optional[str]:
+        """
+        Load YouTube cookies from shared helper and persist to a temp file for yt-dlp.
+        """
+        try:
+            cookies_content = get_youtube_cookies()
+            os.makedirs(self.temp_root, exist_ok=True)
+            cookies_file = os.path.join(self.temp_root, "yt_cookies.txt")
+            with open(cookies_file, "w", encoding="utf-8") as f:
+                f.write(cookies_content)
+
+            source = "secret_manager" if os.getenv("CLOUD_ENV") == "google" else "local_file"
+            _safe_log("INFO", "cookies_loaded", source=source, path=cookies_file)
+            return cookies_file
+        except Exception as e:
+            _safe_log("WARN", "cookies_unavailable", error=str(e))
+            return None
+    
     def _parse_clients(self, s: str) -> List[str]:
         clients = [c.strip() for c in (s or "").split(",") if c.strip()]
         return clients or ["android", "ios", "web"]
@@ -255,7 +276,7 @@ class YouTubeDownloader:
             "downloader_environment",
             has_ffmpeg=has_ffmpeg,
             has_deno=has_deno,
-            cookies_configured=bool(os.getenv("YTDLP_COOKIES_FILE", "").strip()),
+            cookies_configured=bool(self.cookies_path),
         )
 
     def download(self, req: DownloadRequest) -> DownloadResult:

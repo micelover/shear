@@ -37,7 +37,8 @@ def get_clip():
             p.requires_grad = False
 
         _clip_processor = CLIPProcessor.from_pretrained(
-            "openai/clip-vit-base-patch32"
+            "openai/clip-vit-base-patch32",
+            use_fast=True
         )
 
     return _clip_model, _clip_processor
@@ -47,7 +48,8 @@ def get_grounding_dino():
 
     if _dino_model is None:
         _dino_processor = AutoProcessor.from_pretrained(
-            "IDEA-Research/grounding-dino-base"
+            "IDEA-Research/grounding-dino-base",
+            use_fast=True
         )
 
         _dino_model = (
