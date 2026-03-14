@@ -1,7 +1,6 @@
 import os
 import ssl
 import time
-import json
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -9,8 +8,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
-
-from utils.media.paths import get_youtube_token
 
 
 
@@ -24,14 +21,10 @@ SCOPES = [
 def get_authenticated_service():
     creds = None
 
-    try:
-        token_content = get_youtube_token()
-        if token_content:
-            creds = Credentials.from_authorized_user_info(
-                json.loads(token_content), SCOPES
-            )
-    except Exception:
-        creds = None
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file(
+            "token.json", SCOPES
+        )
 
     # ✅ If valid, use it
     if creds and creds.valid:
@@ -41,18 +34,13 @@ def get_authenticated_service():
     if creds and creds.expired and creds.refresh_token:
         try:
             creds.refresh(Request())
-
-            # Persist only when running locally (Cloud Run should use Secret Manager)
-            if os.getenv("CLOUD_ENV") != "google":
-                with open("token.json", "w") as f:
-                    f.write(creds.to_json())
-
+            with open("token.json", "w") as f:
+                f.write(creds.to_json())
             return build("youtube", "v3", credentials=creds)
         except Exception as e:
             # 🔴 DO NOT RE-AUTH AUTOMATICALLY
             raise RuntimeError(
-                "OAuth refresh failed. Manual re-authorization required. "
-                "Run utils/media/auth_once.py to regenerate token.json with the same SCOPES as upload_video.py."
+                "OAuth refresh failed. Manual re-authorization required."
             ) from e
 
     # 🔴 OAuth flow is ALLOWED ONLY manually
