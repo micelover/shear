@@ -1,6 +1,7 @@
 import os
 import ssl
 import time
+import json
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -9,6 +10,7 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
 
+from utils.media.paths import get_youtube_token
 
 
 CLIENT_SECRETS_FILE = "client_secrets.json"
@@ -17,14 +19,21 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.force-ssl"
 ]
 
+_IS_CLOUD = os.getenv("CLOUD_ENV") == "google"
+# On Cloud Run token.json is written to /tmp so the refresh survives the request
+_TOKEN_WRITE_PATH = "/tmp/token.json" if _IS_CLOUD else "token.json"
+
 
 def get_authenticated_service():
     creds = None
 
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file(
-            "token.json", SCOPES
+    try:
+        token_str = get_youtube_token()
+        creds = Credentials.from_authorized_user_info(
+            json.loads(token_str), SCOPES
         )
+    except Exception:
+        creds = None
 
     # ✅ If valid, use it
     if creds and creds.valid:
@@ -34,7 +43,7 @@ def get_authenticated_service():
     if creds and creds.expired and creds.refresh_token:
         try:
             creds.refresh(Request())
-            with open("token.json", "w") as f:
+            with open(_TOKEN_WRITE_PATH, "w") as f:
                 f.write(creds.to_json())
             return build("youtube", "v3", credentials=creds)
         except Exception as e:
