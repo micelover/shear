@@ -96,22 +96,22 @@ def main():
     # data = {'file': '/Users/gladwynli/Documents/bots/shear/data/final.mp4', 'title': 'SANSUI 24 Inch Gaming Monitor Review – Is It Good?', 'description': "This is a review of SANSUI 24 Inch Gaming Monitor. We evaluate the SANSUI 24 Inch Gaming Monitor's performance and features, outline the key pros and cons, and give a clear verdict on whether it's worth buying. The link to SANSUI 24 Inch Gaming Monitor is in the description.\n\n✅ SANSUI 24 Inch Gaming Monitor\nhttps://www.amazon.com/dp/B0CGD9R7PT?tag=logostudios-20\n\n\n► Disclaimer ◄  \nPrimeChoice Picks is a participant in the Amazon Services LLC Associates Program.  \nAs an Amazon Associate, I earn from qualifying purchases at no additional cost to you.", 'tags': ['24 inch monitor', 'sansui gaming monitor 24 inch', 'sansui 24 inch gaming monitor', 'pc monitor', 'sansui 24 inch monitor review', 'led monitor', 'sansui 24 inch gaming monitor', 'gaming monitor', 'sansui monitor 24 inch', 'budget gaming monitor'], 'privacy_status': 'unlisted'}
     youtube = get_authenticated_service()
 
-    # video_id = upload_video(youtube, data)
-    # del data
-    # print(f"[Main] ✅ Upload complete! Video ID: {video_id}")
+    video_id = upload_video(youtube, data)
+    del data
+    print(f"[Main] ✅ Upload complete! Video ID: {video_id}")
 
-    # thumbnail_path = f"{DATA_PATH}/thumbnail.png"
-    # if os.path.exists(thumbnail_path):
-    #     set_thumbnail(youtube, video_id, thumbnail_path)
-    #     print(f"[Main] ✅ Thumbnail uploaded!")
-    # else:
-    #     print("[Main] Skipping: file not found.", flush=True)
+    thumbnail_path = f"{DATA_PATH}/thumbnail.png"
+    if os.path.exists(thumbnail_path):
+        set_thumbnail(youtube, video_id, thumbnail_path)
+        print(f"[Main] ✅ Thumbnail uploaded!")
+    else:
+        print("[Main] Skipping: file not found.", flush=True)
 
-    # comment_id = add_pinned_comment(
-    #     youtube,
-    #     video_id,
-    #     data.get("pinned_comment", "Links to products are in the description!")
-    # )
+    comment_id = add_pinned_comment(
+        youtube,
+        video_id,
+        data.get("pinned_comment", "Links to products are in the description!")
+    )
 
 if __name__ == "__main__":
     main()
