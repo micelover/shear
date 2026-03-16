@@ -11,7 +11,10 @@ from moviepy import (
     CompositeVideoClip, ImageClip, CompositeVideoClip, ColorClip, concatenate_videoclips 
 )
 import concurrent.futures
+import subprocess
+import tempfile
 import random
+import gc
 import os
 import json
 import re
@@ -41,6 +44,124 @@ class Visual():
             videos = vids_future.result()
         valid_videos = [v for v in videos if os.path.getsize(v) > 1000]
         return images, valid_videos
+
+    @staticmethod
+    def _clip_to_segment(clip, seg_start, seg_end):
+        """
+        Slice a clip (with absolute .start time) into a segment window.
+        Returns the re-timed clip, or None if the clip is not active in [seg_start, seg_end).
+        """
+        clip_start = clip.start
+        clip_end   = clip_start + clip.duration
+
+        if clip_end <= seg_start or clip_start >= seg_end:
+            return None
+
+        offset   = max(0.0, seg_start - clip_start)
+        new_dur  = min(clip_end, seg_end) - max(clip_start, seg_start)
+        new_start = max(0.0, clip_start - seg_start)
+
+        # Guard against zero/negative duration due to floating point
+        if new_dur <= 0.001:
+            return None
+
+        return (
+            clip.subclipped(offset, offset + new_dur)
+                .with_start(new_start)
+        )
+
+    def _render_in_segments(
+        self,
+        all_clips,
+        link_overlay,
+        spec_overlays,
+        subtitle_clips,
+        audio_duration,
+        visual_save_path,
+        segment_duration=45,
+    ):
+        """
+        Render the composite in fixed-length chunks to cap peak RAM,
+        then concat the chunks with ffmpeg stream-copy (no re-encode).
+        """
+        overlays = [link_overlay, *spec_overlays, *subtitle_clips]
+        segment_paths = []
+        t = 0.0
+        seg_idx = 0
+
+        while t < audio_duration:
+            seg_end = min(t + segment_duration, audio_duration)
+            seg_len = seg_end - t
+
+            print(f"[visual] Rendering segment {seg_idx}: {t:.1f}s – {seg_end:.1f}s")
+
+            seg_clips = [
+                ColorClip(size=self.video_size, color=(0, 0, 0)).with_duration(seg_len)
+            ]
+
+            for clip in all_clips:
+                sliced = self._clip_to_segment(clip, t, seg_end)
+                if sliced is not None:
+                    seg_clips.append(sliced)
+
+            for ov in overlays:
+                sliced = self._clip_to_segment(ov, t, seg_end)
+                if sliced is not None:
+                    seg_clips.append(sliced)
+
+            seg_path = f"{visual_save_path}.seg{seg_idx:03d}.mp4"
+            segment_paths.append(seg_path)
+
+            comp = CompositeVideoClip(seg_clips, size=self.video_size)
+            comp.write_videofile(
+                seg_path,
+                fps=24,
+                codec="libx264",
+                preset="ultrafast",
+                bitrate="6000k",
+                audio=False,
+                threads=os.cpu_count(),
+                logger=None,
+            )
+            comp.close()
+            # Close sliced copies (not the originals — those are closed by the caller)
+            for c in seg_clips[1:]:
+                try:
+                    c.close()
+                except Exception:
+                    pass
+            del comp, seg_clips
+            gc.collect()
+
+            t = seg_end
+            seg_idx += 1
+
+        # Concatenate all segments with ffmpeg stream-copy (very fast, no RAM spike)
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as tf:
+            for p in segment_paths:
+                tf.write(f"file '{os.path.abspath(p)}'\n")
+            list_path = tf.name
+
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg", "-y",
+                    "-f", "concat", "-safe", "0",
+                    "-i", list_path,
+                    "-c", "copy",
+                    visual_save_path,
+                ],
+                check=True,
+            )
+        finally:
+            os.remove(list_path)
+            for p in segment_paths:
+                try:
+                    os.remove(p)
+                except Exception:
+                    pass
+
+        print(f"[visual] ✅ Segments concatenated → {visual_save_path}")
     
     
     def select_clips(self, duration, part_plan, images, valid_videos):
@@ -128,34 +249,27 @@ class Visual():
 
         print("SEGMENT DATA MADE:", segment_data)
 
-        background = ColorClip(size=self.video_size, color=(0, 0, 0)).with_duration(audio_duration)
-
         print(images, valid_videos)
         all_clips = self.select_clips(audio_duration, segment_data, images, valid_videos)
         link_overlay = create_link_overlay(words_srt_path)
         spec_overlays, sound_effects = create_specs(words_srt_path, start=0)
         subtitle_clips = create_subtitle_clips(self.video_size[1], words_srt_path, start_time=0, size=self.video_size)
 
-        # Single flat CompositeVideoClip — no nested composites
-        visual_clip = CompositeVideoClip(
-            [background, *all_clips, link_overlay, *spec_overlays, *subtitle_clips],
-            size=self.video_size
+        # Render in 45-second segments to cap peak RAM, then ffmpeg-concat
+        self._render_in_segments(
+            all_clips,
+            link_overlay,
+            spec_overlays,
+            subtitle_clips,
+            audio_duration,
+            visual_save_path,
         )
-
-        visual_clip.write_videofile(
-            visual_save_path, 
-            fps=24, 
-            codec="libx264", 
-            preset="ultrafast",
-            bitrate="6000k",
-            audio=False,
-            threads=os.cpu_count(),
-        )
-
-        # part_video.close()
 
         for clip in all_clips:
-            clip.close()
+            try:
+                clip.close()
+            except Exception:
+                pass
 
         # return sound_effects
 
