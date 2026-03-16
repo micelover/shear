@@ -1,5 +1,5 @@
 from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
-from utils.visual.video_clip import choose_clip_intro, choose_clip_body, make_video_clip
+from utils.visual.video_clip import choose_clip_intro, choose_clip_body
 from utils.visual.link_overlay import create_link_overlay
 from utils.visual.part.product_overlay import dual_slide_overlay
 from utils.visual.specs_overlay import create_specs
@@ -8,7 +8,7 @@ from utils.core.edit import get_audio_duration, open_ai_generation, find_videos,
 from utils.core.settings import PART_DURATION
 
 from moviepy import (
-    CompositeVideoClip, ImageClip, CompositeVideoClip, ColorClip, concatenate_videoclips 
+    VideoFileClip, CompositeVideoClip, ImageClip, ColorClip, concatenate_videoclips
 )
 import concurrent.futures
 import subprocess
@@ -72,7 +72,7 @@ class Visual():
 
     def _render_in_segments(
         self,
-        all_clips,
+        clip_descriptors,
         link_overlay,
         spec_overlays,
         subtitle_clips,
@@ -81,8 +81,9 @@ class Visual():
         segment_duration=45,
     ):
         """
-        Render the composite in fixed-length chunks to cap peak RAM,
-        then concat the chunks with ffmpeg stream-copy (no re-encode).
+        Render the composite in fixed-length chunks to cap peak RAM.
+        clip_descriptors is a list of dicts — no open file handles.
+        Clips are opened and closed per segment to minimise memory.
         """
         overlays = [link_overlay, *spec_overlays, *subtitle_clips]
         segment_paths = []
@@ -98,11 +99,49 @@ class Visual():
             seg_clips = [
                 ColorClip(size=self.video_size, color=(0, 0, 0)).with_duration(seg_len)
             ]
+            opened_roots = []  # root clips to close after this segment writes
 
-            for clip in all_clips:
-                sliced = self._clip_to_segment(clip, t, seg_end)
-                if sliced is not None:
-                    seg_clips.append(sliced)
+            for desc in clip_descriptors:
+                clip_start = desc["clip_start"]
+                clip_end   = clip_start + desc["duration"]
+
+                if clip_end <= t or clip_start >= seg_end:
+                    continue  # no overlap with this segment
+
+                overlap_start   = max(clip_start, t)
+                overlap_end     = min(clip_end, seg_end)
+                new_dur         = overlap_end - overlap_start
+                if new_dur <= 0.001:
+                    continue
+                new_start_in_seg = overlap_start - t
+
+                if desc["type"] == "video":
+                    src_offset = overlap_start - clip_start
+                    src_start  = desc["src_start"] + src_offset
+                    src_end    = src_start + new_dur
+
+                    root = VideoFileClip(desc["path"])
+                    opened_roots.append(root)
+                    clip = (
+                        root
+                        .subclipped(src_start, src_end)
+                        .resized(height=self.video_size[1])
+                        .with_position(("center", "center"))
+                        .with_duration(new_dur)
+                        .with_start(new_start_in_seg)
+                    )
+                else:  # image
+                    root = ImageClip(desc["path"]).resized(height=self.video_size[1])
+                    opened_roots.append(root)
+                    pos  = ((self.video_size[0] - root.w) // 2, 0)
+                    clip = (
+                        root
+                        .with_position(pos)
+                        .with_duration(new_dur)
+                        .with_start(new_start_in_seg)
+                    )
+
+                seg_clips.append(clip)
 
             for ov in overlays:
                 sliced = self._clip_to_segment(ov, t, seg_end)
@@ -124,13 +163,18 @@ class Visual():
                 logger=None,
             )
             comp.close()
-            # Close sliced copies (not the originals — those are closed by the caller)
+
+            for root in opened_roots:
+                try:
+                    root.close()
+                except Exception:
+                    pass
             for c in seg_clips[1:]:
                 try:
                     c.close()
                 except Exception:
                     pass
-            del comp, seg_clips
+            del comp, seg_clips, opened_roots
             gc.collect()
 
             t = seg_end
@@ -165,54 +209,50 @@ class Visual():
     
     
     def select_clips(self, duration, part_plan, images, valid_videos):
-        all_body_clips = []
+        """Returns lightweight descriptor dicts — no open file handles."""
+        descriptors = []
         last_img = None
+        USED_WINDOWS = {}
 
-        USED_WINDOWS = {}  
         for i, segment in enumerate(part_plan):
             is_last = (i == len(part_plan) - 1)
-                            
-            sentence = segment["sentence"]
-            clip_targets = [sentence]
 
             start_time = segment["start"]
-            end_time = segment["end"]
+            end_time   = segment["end"]
             if is_last:
                 end_time = duration
-
             est_time = end_time - start_time
 
             if not valid_videos and not images:
                 break
 
-            if random.random() < 0.95 and valid_videos:  
+            if random.random() < 0.95 and valid_videos:
                 clip_info = choose_clip_body(valid_videos, est_time, self.pipeline.keywords, USED_WINDOWS)
                 if clip_info:
                     path, start, end = clip_info
-                    clip = make_video_clip(path, start, end, est_time, start_time, self.video_size)
-                else:
-                    continue
-
-            else:  
+                    descriptors.append({
+                        "type":       "video",
+                        "path":       path,
+                        "src_start":  start,
+                        "src_end":    end,
+                        "duration":   est_time,
+                        "clip_start": start_time,
+                    })
+            else:
                 if not images:
                     continue
                 random_img = random.choice(images)
-
-                # 🔑 prevent same image twice in a row
                 if random_img == last_img and len(images) > 1:
-                    random_img = random.choice(
-                        [img for img in images if img != last_img]
-                    )
-
+                    random_img = random.choice([img for img in images if img != last_img])
                 last_img = random_img
+                descriptors.append({
+                    "type":       "image",
+                    "path":       random_img,
+                    "duration":   est_time,
+                    "clip_start": start_time,
+                })
 
-                clip = ImageClip(random_img).resized(height=self.video_size[1])
-                pos = ((self.video_size[0]-clip.w)//2, 0)
-                clip = clip.with_position(pos).with_duration(est_time).with_start(start_time)
-
-            all_body_clips.append(clip)
-
-        return all_body_clips
+        return descriptors
 
 
     def build_visual(self, product, paths):
@@ -250,26 +290,21 @@ class Visual():
         print("SEGMENT DATA MADE:", segment_data)
 
         print(images, valid_videos)
-        all_clips = self.select_clips(audio_duration, segment_data, images, valid_videos)
+        # Descriptors only — no open file handles until render time
+        clip_descriptors = self.select_clips(audio_duration, segment_data, images, valid_videos)
         link_overlay = create_link_overlay(words_srt_path)
         spec_overlays, sound_effects = create_specs(words_srt_path, start=0)
         subtitle_clips = create_subtitle_clips(self.video_size[1], words_srt_path, start_time=0, size=self.video_size)
 
         # Render in 45-second segments to cap peak RAM, then ffmpeg-concat
         self._render_in_segments(
-            all_clips,
+            clip_descriptors,
             link_overlay,
             spec_overlays,
             subtitle_clips,
             audio_duration,
             visual_save_path,
         )
-
-        for clip in all_clips:
-            try:
-                clip.close()
-            except Exception:
-                pass
 
         # return sound_effects
 
