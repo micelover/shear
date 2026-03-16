@@ -107,11 +107,11 @@ def main():
     else:
         print("[Main] Skipping: file not found.", flush=True)
 
-    comment_id = add_pinned_comment(
-        youtube,
-        video_id,
-        data.get("pinned_comment", "Links to products are in the description!")
-    )
+    # comment_id = add_pinned_comment(
+    #     youtube,
+    #     video_id,
+    #     data.get("pinned_comment", "Links to products are in the description!")
+    # )
 
 if __name__ == "__main__":
     main()
