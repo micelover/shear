@@ -29,20 +29,28 @@ def get_authenticated_service():
 
     try:
         token_str = get_youtube_token()
-        creds = Credentials.from_authorized_user_info(
-            json.loads(token_str), SCOPES
-        )
-    except Exception:
+        data = json.loads(token_str)
+
+        if isinstance(data, str):  # double-encoded fix
+            data = json.loads(data)
+
+        creds = Credentials.from_authorized_user_info(data, SCOPES)
+        print(f"[auth] Token loaded — valid={creds.valid}, expired={creds.expired}, has_refresh={bool(creds.refresh_token)}")
+    except Exception as e:
+        print("❌ TOKEN LOAD ERROR:", e)
         creds = None
 
     # ✅ If valid, use it
     if creds and creds.valid:
+        print("[auth] ✅ Token valid, building service")
         return build("youtube", "v3", credentials=creds)
 
     # ✅ Try refresh ONLY
-    if creds and creds.expired and creds.refresh_token:
+    if creds and creds.refresh_token:
         try:
+            print("[auth] Token expired, attempting refresh...")
             creds.refresh(Request())
+            print("[auth] ✅ Token refreshed successfully")
             with open(_TOKEN_WRITE_PATH, "w") as f:
                 f.write(creds.to_json())
             return build("youtube", "v3", credentials=creds)
@@ -53,6 +61,7 @@ def get_authenticated_service():
             ) from e
 
     # 🔴 OAuth flow is ALLOWED ONLY manually
+    print(f"[auth] ❌ creds={creds}, valid={getattr(creds,'valid',None)}, expired={getattr(creds,'expired',None)}, refresh_token={bool(getattr(creds,'refresh_token',None))}")
     raise RuntimeError(
         "No valid OAuth token found. Run manual auth script."
     )
