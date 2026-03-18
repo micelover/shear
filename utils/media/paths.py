@@ -136,7 +136,8 @@ def get_youtube_token() -> str:
     Raises:
       RuntimeError: if token cannot be found or loaded.
     """
-    is_cloud_run = os.getenv("CLOUD_ENV") == "google"
+    is_cloud_run = os.environ.get("CLOUD_ENV") == "google"
+    print(f"[get_youtube_token] CLOUD_ENV={os.environ.get('CLOUD_ENV')}, is_cloud_run={is_cloud_run}")
 
     if not is_cloud_run:
         project_root = Path(__file__).resolve().parents[2]
