@@ -156,37 +156,10 @@ def get_youtube_token() -> str:
 
         return content
 
-    # Cloud path: Secret Manager
-    project_id = _get_gcp_project_id()
-    if not project_id:
-        raise RuntimeError(
-            "Could not determine GCP project ID for Secret Manager lookup. "
-            "Set GOOGLE_CLOUD_PROJECT (or GCP_PROJECT/GCLOUD_PROJECT)."
-        )
-
-    secret_name = f"projects/{project_id}/secrets/shears_token/versions/latest"
-
-    try:
-        try:
-            from google.cloud import secretmanager
-        except Exception as import_exc:
-            raise RuntimeError(
-                "google-cloud-secret-manager is not available in this environment. "
-                "Install it before loading token on Cloud Run."
-            ) from import_exc
-
-        client = secretmanager.SecretManagerServiceClient()
-        response = client.access_secret_version(request={"name": secret_name})
-        content = response.payload.data.decode("utf-8").strip()
-    except Exception as exc:
-        raise RuntimeError(
-            "Failed to load YouTube token from Secret Manager secret `shears_token` "
-            f"in project `{project_id}`: {exc}"
-        ) from exc
-
+    content = os.getenv("shears_token")
     if not content:
         raise RuntimeError(
-            "Secret `shears_token` was retrieved but is empty."
+            "Environment variable `SHEARS_SERPAPI_API_KEY` is not set."
         )
-
     return content
+
