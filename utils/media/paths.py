@@ -28,7 +28,7 @@ def get_project_paths():
         for p in [data_path, source_path, utils_path]:
             p.mkdir(parents=True, exist_ok=True)
 
-    # 6️⃣ Return absolute full paths
+    # 6️⃣ Return absolute full pathsm
     return (
         str(base_dir.resolve()),
         str(data_path.resolve()),
