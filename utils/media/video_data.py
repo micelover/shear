@@ -137,7 +137,7 @@ def generate_data(product):
         "description": description,
         # "pinned_comment": pinned_comment,
         "tags": tags,
-        "privacy_status": "unlisted"
+        "privacy_status": "public"
     }
 
     return video_data
