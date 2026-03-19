@@ -94,7 +94,7 @@ class ProductFetcher:
     #  SerpApi calls                                                        #
     # ------------------------------------------------------------------ #
 
-    def _serpapi_get(self, params: dict, timeout: int = 10) -> dict:
+    def _serpapi_get(self, params: dict, timeout: int = 30) -> dict:
         """Thin wrapper around SerpApi with unified error handling."""
         params["api_key"] = self.serpapi_key
         try:
@@ -148,17 +148,20 @@ class ProductFetcher:
             logger.error("ASIN not found in URL: %s", url)
             return None
 
-        data = self._serpapi_get({"engine": "amazon", "amazon_domain": "amazon.com", "k": asin})
-        results = data.get("organic_results", [])
-        if not results:
+        data = self._serpapi_get({
+            "engine": "amazon_product",
+            "amazon_domain": "amazon.com",
+            "asin": asin,
+        })
+        product = data.get("product_results") or data.get("product") or {}
+        if not product:
             logger.warning("No results for ASIN: %s", asin)
             return None
 
-        item = results[0]
         return {
             "asin": asin,
-            "title": item.get("title"),
-            "price": item.get("price"),
+            "title": product.get("title"),
+            "price": product.get("price"),
             "url": url,
             "affiliate_link": self._affiliate_link(asin, affiliate_tag),
         }
@@ -271,11 +274,17 @@ class ProductFetcher:
 
         logger.debug("valid_products: %s", valid_products)
 
-        chosen = random.choice(valid_products)
+        random.shuffle(valid_products)
+        details = None
+        chosen = None
+        for candidate in valid_products:
+            details = self.fetch_product_details(candidate["url"])
+            if details:
+                chosen = candidate
+                break
 
-        details = self.fetch_product_details(chosen["url"])
-        if not details:
-            raise RuntimeError(f"Could not fetch details for {chosen['url']}")
+        if not details or not chosen:
+            raise RuntimeError("Could not fetch details for any valid product")
 
         combined = {**chosen, **details}
 
