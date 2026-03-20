@@ -247,22 +247,36 @@ def add_box_shadow(
 
     canvas.alpha_composite(shadow_layer)
 
+def _smart_crop_top(img, height, target_height):
+    try:
+        import cv2
+        import numpy as np
+
+        cv_img = cv2.cvtColor(np.array(img.convert("RGB")), cv2.COLOR_RGB2BGR)
+        gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
+        cascade = cv2.CascadeClassifier(
+            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        )
+        faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(50, 50))
+
+        if len(faces) > 0:
+            topmost_face_y = min(y for (_, y, _, _) in faces)
+            ideal_top = topmost_face_y - 60  # padding above face
+            return max(0, min(ideal_top, height - target_height))
+    except Exception as e:
+        print(f"[Crop] Face detection failed, using center crop: {e}")
+
+    return (height - target_height) // 2
+
+
 def crop_to_16_9(input_path, output_path):
     img = Image.open(input_path)
     width, height = img.size
-
-    # Target height for 16:9
     target_height = int(width * 9 / 16)
 
     if target_height > height:
         raise ValueError("Image is too short to crop to 16:9.")
 
-    # Calculate equal crop
-    top = (height - target_height) // 2
-    bottom = top + target_height
-
-    # Crop (left, top, right, bottom)
-    img_cropped = img.crop((0, top, width, bottom))
-
-    img_cropped.save(output_path)
-    print("✅ Cropped evenly from top and bottom.")
+    top = _smart_crop_top(img, height, target_height)
+    img.crop((0, top, width, top + target_height)).save(output_path)
+    print(f"✅ Cropped to 16:9 (top={top}).")

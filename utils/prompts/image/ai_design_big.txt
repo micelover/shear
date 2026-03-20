@@ -1,3 +1,15 @@
+⚠️ CROP SAFETY ZONE — HIGHEST PRIORITY RULE
+This image will be hard-cropped to 16:9 for YouTube. The top 10% and bottom 10% of the frame will be removed.
+REQUIREMENT: No face, hand, or product edge may appear in the top 10% or bottom 10% of the frame.
+These zones must contain ONLY background/environment.
+Every subject (person, product, hands) must be fully contained within the center 80% of the vertical frame.
+Compose as if the top and bottom 10% strips do not exist.
+
+TEXT OVERLAY ZONE
+Bold text (e.g. "Worth It?") will be overlaid on the upper-left area of the final image.
+REQUIREMENT: The upper-left quadrant must be clean, low-detail background — no faces, hands, or product edges.
+This area must have enough negative space and contrast for white or black bold text to be legible.
+
 Create a high click-through-rate YouTube thumbnail scene for a tech review video.
 The image must look like a real photograph captured during filming, not a graphic design or AI render.
 The thumbnail should feel authentic, professional, and product-focused, similar to thumbnails created by experienced tech reviewers.
@@ -5,7 +17,7 @@ Colors should appear slightly vibrant and saturated for visual pop, while still 
 
 CORE PRIORITY
 • The product must be the largest and most visually dominant object in the frame
-• The viewer’s eye should go product → human reaction
+• The viewer's eye should go product → human reaction
 • No fictional elements
 • Do not include unrelated objects, props, metaphors, or symbols
 • Only include the real product and natural human interaction
@@ -13,9 +25,10 @@ The product must clearly be the hero of the frame.
 
 COMPOSITION
 Design the frame with a strong left-heavy layout.
-• The product must dominate the left side of the frame (25–35% visual weight)
+• The product must dominate the left side of the frame (20–25% visual weight)
 • The product should sit naturally on a desk or table with realistic perspective
-• Leave extra empty space above and below the subjects so the image can be safely cropped from the top and bottom later.
+• Top 10% and bottom 10% of the frame are CROP ZONES — background only, no subjects.
+• The camera should feel pulled back further than usual — subjects should occupy no more than 60% of the frame height, leaving clear breathing room above and below.
 • The product must appear sharp, highly detailed, and clearly lit
 • Do not center the product
 Leave intentional negative space above and to the left of the product.
@@ -25,7 +38,7 @@ Nothing important should occupy this reserved space.
 PRODUCT PRESENTATION
 • The product must appear physically large and close to the viewer
 • Clear material detail (glass reflections, plastic texture, metal edges)
-• Subtle highlights should reveal the product’s shape
+• Subtle highlights should reveal the product's shape
 • Slight rim lighting or soft edge highlight is allowed to separate it from the background
 • Keep all lighting realistic and natural
 Do not redesign, exaggerate, distort, or stylize the product.
@@ -36,7 +49,7 @@ Include a realistic tech reviewer on the RIGHT side of the frame.
 • The person must appear behind or beside the product, not in front of it
 • The face must support the product visually and not compete with it
 • Natural skin texture and lighting
-• The reviewer should appear slightly smaller in the frame to maintain safe margins for later cropping.
+• The reviewer should appear noticeably smaller than the product, positioned further back in the frame.
 • Slight asymmetry and realistic imperfections
 Expression should be subtle and believable:
 • thoughtful skepticism
@@ -64,7 +77,7 @@ Avoid:
 
 CAMERA & REALISM
 The scene should feel like it was shot on a real camera indoors.
-• The camera framing should feel slightly pulled back, leaving breathing room around the product and person.
+• The camera framing should feel pulled back, leaving generous breathing room around the product and person.
 Suggested look:
 • 35–50mm lens
 • shallow depth of field
@@ -78,7 +91,8 @@ Additional realism details:
 • no extreme sharpening
 
 VISUAL HIERARCHY (STRICT)
-1️⃣ Product2️⃣ Human reaction
+1️⃣ Product
+2️⃣ Human reaction
 The product must instantly capture attention.
 The viewer should immediately understand what product is being reviewed.
 
@@ -88,5 +102,5 @@ The thumbnail should feel:
 • product-focused
 • trustworthy
 • opinion-driven
-The product is the hero.The human supports the message.
+The product is the hero. The human supports the message.
 The composition must leave clear space above and to the left of the product so headline graphics can be added later.

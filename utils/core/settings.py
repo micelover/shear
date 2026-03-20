@@ -57,6 +57,6 @@ SFX_REGISTRY = {
 THUMBNAIL_IMG_COUNT = {
     "design1": (8, 4),
     "design2": (8, 4),
-    "ai_design": (8, 4),
+    "ai_design": (4, 2),
 }
 
