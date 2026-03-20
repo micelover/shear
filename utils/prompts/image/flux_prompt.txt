@@ -1,0 +1,25 @@
+You are writing a detailed image generation prompt for Flux to create a professional YouTube tech review thumbnail.
+
+Product: {product_name}
+Type: {product_type}
+
+Write a detailed, specific Flux image generation prompt (6-8 sentences). Follow every requirement below exactly.
+
+REQUIREMENTS
+
+SUBJECT & COMPOSITION
+The {product_type} must be the most visually dominant object in the frame, positioned on the right side and slightly below center. It must be sharp, fully in focus, and rendered with realistic material detail — visible surface texture, subtle reflections, and accurate form. A human hand must be holding or interacting with the {product_type}, OR a person must appear partially in frame with their face visible but softly blurred by shallow depth of field. The overall composition should feel like a real product review photo taken in an indoor setting.
+
+TEXT OVERLAY
+In the upper-left area of the image, there is a bold graphic text overlay reading "WORTH IT?" — this text is floating on top of the scene like a YouTube thumbnail graphic, NOT printed on the product itself. The text is large, white, bold sans-serif, with a subtle dark drop shadow behind it so it reads clearly against the background.
+
+BACKGROUND & DEPTH
+The background must be strongly blurred using a wide aperture bokeh effect — only the product and hand/person are in focus. The background should suggest a clean indoor workspace or desk environment, slightly darker and less saturated than the foreground to make the product pop visually.
+
+LIGHTING & COLOR
+Soft natural indoor lighting — warm window light or a soft desk lamp — hitting the product from a slight angle to reveal its shape and material. Colors should be slightly more vibrant and saturated than a raw photograph while still looking natural and believable. No dramatic cinematic lighting, no HDR look, no artificial glow.
+
+STYLE
+The image must look exactly like a real photograph shot on a 50mm lens at f/1.8, not a 3D render or graphic design poster. Realistic skin texture, natural imperfections, subtle shadows. The entire scene must feel authentic and spontaneous.
+
+Output only the final Flux prompt text. No labels, no explanation, no extra lines.

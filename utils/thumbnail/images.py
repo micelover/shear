@@ -17,16 +17,14 @@ with open(f'{UTILS_PATH}/prompts/image/remove_bg.txt', 'r') as file:
 with open(f'{UTILS_PATH}/prompts/image/cutout_check.txt', 'r') as file:
     cutout_check_prompt = file.read()
 
-def process_single_image(url):
+def process_single_image(url, product_type: str = ""):
     try:
-        # 1. Create ONE base filename
         uid = generate_uuid_name("img_")
 
         work_path = f"{DATA_PATH}/thumbnail/process/{uid}.png"
         cutout_path = f"{DATA_PATH}/thumbnail/process/{uid}.png"
         final_path = f"{DATA_PATH}/thumbnail/{uid}.png"
 
-        # 2. Download directly to work_path
         download_image(url, work_path)
 
         is_valid, reason = verify_image(work_path)
@@ -35,23 +33,20 @@ def process_single_image(url):
             os.remove(work_path)
             return None
 
-        # 3. Remove background IN PLACE (overwrite)
         open_ai_edit_img(remove_bg_prompt, [work_path], cutout_path)
 
-        result = open_ai_generation(cutout_check_prompt, 
-            model="gpt-4.1", 
-            temperature=0, 
-            images=[work_path, cutout_path], 
+        prompt = cutout_check_prompt.replace("{product_type}", product_type or "product")
+        result = open_ai_generation(prompt,
+            model="gpt-4.1",
+            temperature=0,
+            images=[work_path, cutout_path],
         )
         verify_json = json.loads(result)
 
         if (not verify_json["pass"]) or verify_json["confidence"] < 0.7:
             return None
 
-        # 4. Crop + fit into final output
         crop_fit(cutout_path, final_path)
-
-        # 5. Delete working file
         os.remove(work_path)
 
         return final_path
@@ -59,9 +54,10 @@ def process_single_image(url):
     except Exception as e:
         print("ERROR processing", url, e)
         return None
-    
+
 def get_images(
     product_title: str,
+    product_type: str = "",
     product_names: list | None = None,
     fetch_count: int = 16,
     num_images: int = 8,
@@ -69,38 +65,31 @@ def get_images(
 ):
     image_urls = []
 
-    # 1️⃣ Try specific product names first
     if product_names:
         for name in product_names:
             specific_urls = google_shopping_images(name, 1)
             if specific_urls:
                 image_urls.append(specific_urls[0])
-
             if len(image_urls) >= num_images:
                 break
 
-    # 2️⃣ Fill remaining slots with generic search
     remaining = fetch_count - len(image_urls)
     if remaining > 0:
         generic_urls = google_shopping_images(product_title, remaining)
         image_urls.extend(generic_urls[:remaining])
 
-    # 3️⃣ Cap before processing
     image_urls = image_urls[:fetch_count]
 
     images = []
-    MAX_WORKERS = workers
-
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [
-            executor.submit(process_single_image, url)
+            executor.submit(process_single_image, url, product_type)
             for url in image_urls
         ]
         for future in as_completed(futures):
             result = future.result()
             if result:
                 images.append(result)
-
             if len(images) >= num_images:
                 break
 

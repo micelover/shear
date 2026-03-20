@@ -1,3 +1,15 @@
+⚠️ CROP SAFETY ZONE — HIGHEST PRIORITY RULE
+This image will be hard-cropped to 16:9 for YouTube. The top 10% and bottom 10% of the frame will be removed.
+REQUIREMENT: No face, hand, or product edge may appear in the top 10% or bottom 10% of the frame.
+These zones must contain ONLY background/environment.
+Every subject (person, product, hands) must be fully contained within the center 80% of the vertical frame.
+Compose as if the top and bottom 10% strips do not exist.
+
+TEXT OVERLAY ZONE
+Bold text (e.g. "Worth It?") will be overlaid on the upper-left area of the final image.
+REQUIREMENT: The upper-left quadrant must be clean, low-detail background — no faces, hands, or product edges.
+This area must have enough negative space and contrast for white or black bold text to be legible.
+
 Create a high click-through-rate YouTube thumbnail scene for a tech review video using strong foreground/background depth.
 The image must look like a real photo captured during filming — spontaneous, natural, and believable. It must not look like a graphic design poster or an AI render.
 Colors should appear slightly more vibrant and saturated than normal camera output, while still remaining natural and realistic. The product colors should pop slightly without looking artificially edited.
@@ -5,6 +17,7 @@ Colors should appear slightly more vibrant and saturated than normal camera outp
 FRAME COMPOSITION
 Design the image with a left-heavy layout and strong visual hierarchy.
 The product must appear in the left third of the frame, leaving clear negative space above and to the left of the product so headline text can be added later.
+The camera should feel pulled back — the overall scene should feel spacious, not tight or close-cropped.
 Leave clear breathing room around the product:
 • open space above the product
 • open space to the left of the product
@@ -13,7 +26,7 @@ Nothing important should occupy that area.
 
 LEFT SIDE — FOREGROUND PRODUCT
 • Product extremely close to the camera lens
-• Occupies roughly 20–25% of frame width
+• Occupies roughly 15–18% of frame width
 • Clearly the sharpest object in the image
 • Held casually in one hand
 • Slight natural tilt allowed
@@ -30,7 +43,7 @@ The product should visually outweigh the hand, but the hand must still look natu
 RIGHT SIDE — BACKGROUND HUMAN
 • Person positioned behind the product on the right side
 • Face softly blurred due to shallow depth of field
-• The person should appear slightly smaller in frame to maintain safe cropping margins
+• The person must be fully within the center 80% of the vertical frame — top and bottom 10% will be cropped
 • Person pointing toward the product
 • Expression subtle and believable:
 * quiet realization
@@ -41,7 +54,7 @@ Avoid exaggerated YouTube reaction faces.
 The human should visually support the product, not compete with it.
 
 CAMERA & REALISM
-The camera should feel slightly pulled back so the composition leaves breathing room around the subjects.
+The camera should feel pulled back so the composition leaves generous breathing room around the subjects.
 The image should feel like it was shot on a 50mm lens at f/1.8–f/2.8 indoors.
 • Realistic shallow depth of field
 • Natural indoor lighting (window light or soft room light)
@@ -67,4 +80,3 @@ VISUAL PRIORITY (STRICT ORDER)
 2️⃣ Facial reaction
 The viewer must notice the product instantly, then the human reaction.
 The product should visually anchor the entire frame.
-

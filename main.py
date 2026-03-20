@@ -62,7 +62,7 @@ def main():
     pipeline = PipelineData()
 
     product_fetcher = ProductFetcher(pipeline)
-    product_fetcher.GetProduct()
+    product_fetcher.get_product()
     print("✅ Product fetched:", pipeline.product)
 
     _classify_product(product_fetcher, pipeline.product.simple_title)
@@ -113,25 +113,29 @@ def main():
     #     data.get("pinned_comment", "Links to products are in the description!")
     # )
 
-# def main2():
-#     if os.path.isdir(DATA_PATH): 
-#         shutil.rmtree(DATA_PATH)
+def main2():
+    if os.path.isdir(DATA_PATH): 
+        shutil.rmtree(DATA_PATH)
 
-#     os.makedirs(DATA_PATH)
-#     os.makedirs(f"{DATA_PATH}/thumbnail/process")
+    os.makedirs(DATA_PATH)
+    os.makedirs(f"{DATA_PATH}/thumbnail/process")
 
-#     proj_paths = build_proj_paths(DATA_PATH)
+    proj_paths = build_proj_paths(DATA_PATH)
 
-#     os.makedirs(proj_paths['audio_dir'], exist_ok=True)
-#     os.makedirs(proj_paths['media_dir'], exist_ok=True)
+    os.makedirs(proj_paths['audio_dir'], exist_ok=True)
+    os.makedirs(proj_paths['media_dir'], exist_ok=True)
 
-#     pipeline = PipelineData()
+    pipeline = PipelineData()
 
-#     product_fetcher = ProductFetcher(pipeline)
-#     product_fetcher.GetProduct()
-#     print("✅ Product fetched:", pipeline.product)
+    product_fetcher = ProductFetcher(pipeline)
+    product_fetcher.get_product()
+    print("✅ Product fetched:", pipeline.product)
 
-#     data = generate_data(pipeline.product)
+    _classify_product(product_fetcher, pipeline.product.simple_title)
+    print("✅ Product Classified:", pipeline.product_type)
+
+    # data = generate_data(pipeline.product)
+    generate_thumbnail(pipeline)
 
 
 if __name__ == "__main__":

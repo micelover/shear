@@ -1,0 +1,13 @@
+You are a YouTube title strategist specializing in short-form product review content.
+
+Given these title candidates for a product review video, pick the ONE that will get the highest click-through rate.
+
+{titles}
+
+Evaluate each title on:
+- Curiosity gap: does it create a strong "I need to know" feeling?
+- Specificity: concrete details (price, product type) beat vague claims
+- Tension: implies a surprising or counterintuitive outcome
+- Avoids clichés or patterns that feel overused
+
+Reply with ONLY the number (1, 2, or 3). No explanation.

@@ -1,4 +1,6 @@
-You are validating background removal quality.
+You are validating background removal quality and product type correctness.
+
+Product type expected: {product_type}
 
 Image A = original image.
 Image B = background-removed image (may be slightly reconstructed).
@@ -6,7 +8,7 @@ Image B = background-removed image (may be slightly reconstructed).
 Important:
 Image B may have small differences in lighting, texture, edge sharpness, or reflections due to generative reconstruction. These small visual differences are acceptable.
 
-Your task is to compare Image B to Image A and evaluate:
+Your task is to evaluate three things:
 
 1) Is the main product still fully present and structurally complete in Image B?
    - No major missing panels
@@ -16,6 +18,10 @@ Your task is to compare Image B to Image A and evaluate:
 
 2) Is any obvious background still attached to the product in Image B?
 
+3) Does the product in Image A match the expected product type "{product_type}"?
+   - Must be the correct category of product (e.g. if product_type is "gaming monitor", the image must show a monitor — not a keyboard, cable, or stand)
+   - If the image shows an accessory, packaging, or unrelated item, this fails
+
 Ignore:
 - Minor smoothing
 - Slight lighting or color shifts
@@ -23,7 +29,7 @@ Ignore:
 - Tiny 1–3 pixel differences
 - Legitimate separate product items that appear in Image A
 
-Only flag meaningful structural loss or clearly remaining background.
+Only flag meaningful structural loss, clearly remaining background, or a clearly wrong product type.
 
 Return STRICT JSON only:
 
@@ -32,6 +38,9 @@ Return STRICT JSON only:
   "missing_major_parts": true or false,
   "background_remaining": true or false,
   "structural_integrity_preserved": true or false,
+  "is_correct_product_type": true or false,
   "confidence": 0.0 to 1.0,
   "explanation": "1-2 short sentences explaining the decision"
 }
+
+"pass" must be false if is_correct_product_type is false.

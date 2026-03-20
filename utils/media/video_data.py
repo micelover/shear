@@ -1,65 +1,72 @@
-from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
+from utils.core.config import DATA_PATH, UTILS_PATH
 from utils.core.edit import open_ai_generation
 
-import os
 import json
 import random
-from datetime import datetime
-import os
 
 
+_prompts: dict[str, str] = {}
+
+def _load_prompts() -> dict[str, str]:
+    if _prompts:
+        return _prompts
+    for name in ["title", "title_pick", "description", "tags"]:
+        with open(f"{UTILS_PATH}/prompts/{name}.txt") as f:
+            _prompts[name] = f.read()
+    return _prompts
 
 
+def _parse_titles(response: str) -> list[str]:
+    titles = []
+    for line in response.strip().splitlines():
+        line = line.strip()
+        if line and line[0].isdigit() and '.' in line:
+            title = line.split('.', 1)[1].strip()
+            if title:
+                titles.append(title[:65])
+    return titles
 
-with open(f'{UTILS_PATH}/prompts/title.txt', 'r') as file:
-    orignial_title_prompt = file.read()
 
-with open(f'{UTILS_PATH}/prompts/description.txt', 'r') as file:
-    orignial_description_prompt = file.read()
+def _pick_best_title(titles: list[str]) -> str:
+    prompts = _load_prompts()
+    numbered = "\n".join(f"{i+1}. {t}" for i, t in enumerate(titles))
+    pick_prompt = prompts["title_pick"].replace("{titles}", numbered)
+    response = open_ai_generation(pick_prompt, model="gpt-5-mini", temperature=0)
+    if response:
+        try:
+            idx = int(response.strip()) - 1
+            if 0 <= idx < len(titles):
+                return titles[idx]
+        except ValueError:
+            pass
+    return titles[0]
 
-with open(f'{UTILS_PATH}/prompts/tags.txt', 'r') as file:
-    orignial_tags_prompt = file.read()
 
-def _format_timestamp(seconds: float) -> str:
-    total_seconds = int(seconds)
-
-    hours = total_seconds // 3600
-    total_seconds %= 3600
-
-    minutes = total_seconds // 60
-    seconds = total_seconds % 60
-
-    if hours > 0:
-        return f"{hours}:{minutes:02d}:{seconds:02d}"
-    else:
-        return f"{minutes}:{seconds:02d}"
-    
-def _sanitize_text(text, max_len=95):
-    return text.strip().replace("\n", " ")[:max_len]
-
-def _generate_title(product_title):
+def _generate_title(product_title, price=""):
+    prompts = _load_prompts()
     title = f"{product_title} Review – Is It Good?"
 
     title_prompt = (
-        orignial_title_prompt
+        prompts["title"]
         .replace("{product_name}", product_title)
+        .replace("{price}", price or "N/A")
     )
-    title_response = open_ai_generation(title_prompt, model="gpt-5-mini", temperature=0.25)
+    title_response = open_ai_generation(title_prompt, model="gpt-5-mini", temperature=0.7)
     if title_response:
-        title = title_response.strip().replace("\n", " ")[:65]
+        titles = _parse_titles(title_response)
+        if titles:
+            print(f"[Title] Candidates: {titles}")
+            title = _pick_best_title(titles) if len(titles) > 1 else titles[0]
 
     return title
 
+
 def _generate_description(product):
+    prompts = _load_prompts()
     description_parts = []
 
-    # Prepare prompt
-    description_prompt = (
-        orignial_description_prompt
-        .replace("{product_name}", product.simple_title)
-    )
+    description_prompt = prompts["description"].replace("{product_name}", product.simple_title)
 
-    # AI-generated text
     description_response = open_ai_generation(
         description_prompt,
         model="gpt-5-mini",
@@ -70,33 +77,26 @@ def _generate_description(product):
         description_parts.append(description_response.strip()[:1250])
 
     description_parts.append("")  # blank line
-
-    short_title = product.simple_title
-    affiliate_link = product.affiliate_link
-    description_parts.append(f"✅ {short_title}\n{affiliate_link}\n")
-
+    description_parts.append(f"✅ {product.simple_title}\n{product.affiliate_link}\n")
     description_parts.append("")  # blank line
 
-    disclaimer = '''
-► Disclaimer ◄  
-PrimeChoice Picks is a participant in the Amazon Services LLC Associates Program.  
-As an Amazon Associate, I earn from qualifying purchases at no additional cost to you.
-    '''
-    
-    description_parts.append(disclaimer.strip())  
+    disclaimer = (
+        "► Disclaimer ◄  \n"
+        "PrimeChoice Picks is a participant in the Amazon Services LLC Associates Program.  \n"
+        "As an Amazon Associate, I earn from qualifying purchases at no additional cost to you."
+    )
+    description_parts.append(disclaimer)
 
     return "\n".join(description_parts)
 
+
 def _generate_tags(product_name):
+    prompts = _load_prompts()
     tags = [product_name]
 
-    tags_prompt = orignial_tags_prompt.replace("{product}", product_name)
+    tags_prompt = prompts["tags"].replace("{product}", product_name)
     try:
-        tags_response = open_ai_generation(
-            tags_prompt,
-            model="gpt-5-mini",
-            temperature=0.7,
-        )
+        tags_response = open_ai_generation(tags_prompt, model="gpt-5-mini", temperature=0.7)
         tags_json = json.loads(tags_response)
         if isinstance(tags_json, dict) and "tags" in tags_json:
             tags = tags_json["tags"]
@@ -108,43 +108,22 @@ def _generate_tags(product_name):
 
     return [t.strip().lower() for t in tags if 1 < len(t) < 50][:10]
 
-def _create_pinned_comment():
-    return "🔗 Product links: All items featured in this video are listed in the description."
 
 def generate_data(product):
-    current_date = datetime.now()
-    year = current_date.year
-    month = current_date.month
-    day = current_date.day
-
     print("product.simple_title:", product.simple_title)
 
-    title = _generate_title(product.simple_title)
-
+    title = _generate_title(product.simple_title, product.price)
     description = _generate_description(product)
-
     tags = _generate_tags(product.simple_title)
 
     print(f"Generated title: {title}")
     print(f"Generated description: {description}")
     print(f"Generated tags: {tags}")
 
-    # pinned_comment = _create_pinned_comment()
-
-    video_data = {
+    return {
         "file": f"{DATA_PATH}/final.mp4",
         "title": title,
         "description": description,
-        # "pinned_comment": pinned_comment,
         "tags": tags,
-        "privacy_status": "public"
+        "privacy_status": "public",
     }
-
-    return video_data
-    # return 
-
-
-
-
-
-
