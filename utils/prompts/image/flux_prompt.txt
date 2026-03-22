@@ -1,25 +1,73 @@
-You are writing a detailed image generation prompt for Flux to create a professional YouTube tech review thumbnail.
+Use image 1 as the product.
 
-Product: {product_name}
-Type: {product_type}
+The product is a: {product_type}
 
-Write a detailed, specific Flux image generation prompt (6-8 sentences). Follow every requirement below exactly.
+Create a realistic YouTube thumbnail base:
 
-REQUIREMENTS
+Core:
 
-SUBJECT & COMPOSITION
-The {product_type} must be the most visually dominant object in the frame, positioned on the right side and slightly below center. It must be sharp, fully in focus, and rendered with realistic material detail — visible surface texture, subtle reflections, and accurate form. A human hand must be holding or interacting with the {product_type}, OR a person must appear partially in frame with their face visible but softly blurred by shallow depth of field. The overall composition should feel like a real product review photo taken in an indoor setting.
+* The camera is close to the product so it appears large and dominant
+* The product fills about 60–75% of the frame
+* Slightly off-center placement
+* Leave empty space at the top for text
 
-TEXT OVERLAY
-In the upper-left area of the image, there is a bold graphic text overlay reading "WORTH IT?" — this text is floating on top of the scene like a YouTube thumbnail graphic, NOT printed on the product itself. The text is large, white, bold sans-serif, with a subtle dark drop shadow behind it so it reads clearly against the background.
+Product:
 
-BACKGROUND & DEPTH
-The background must be strongly blurred using a wide aperture bokeh effect — only the product and hand/person are in focus. The background should suggest a clean indoor workspace or desk environment, slightly darker and less saturated than the foreground to make the product pop visually.
+* This is a real {product_type}
+* Keep the product exactly the same as the input image
+* Do NOT redesign, replace, or reinterpret the product
+* Preserve all details, structure, and proportions
+* The product must remain clearly recognizable as a {product_type}
 
-LIGHTING & COLOR
-Soft natural indoor lighting — warm window light or a soft desk lamp — hitting the product from a slight angle to reveal its shape and material. Colors should be slightly more vibrant and saturated than a raw photograph while still looking natural and believable. No dramatic cinematic lighting, no HDR look, no artificial glow.
+Table:
 
-STYLE
-The image must look exactly like a real photograph shot on a 50mm lens at f/1.8, not a 3D render or graphic design poster. Realistic skin texture, natural imperfections, subtle shadows. The entire scene must feel authentic and spontaneous.
+* The product sits on a real desk or table (wood or matte surface)
+* The table must be completely EMPTY
+* No objects on the table besides the product
 
-Output only the final Flux prompt text. No labels, no explanation, no extra lines.
+Background:
+
+* A minimal background (matte wall or soft gradient)
+* No objects or distractions
+* Background should contrast the product
+
+Depth:
+
+* Strong background blur
+
+Lighting:
+
+* Strong directional light from one side
+* Clear shadow on the table
+* High contrast (bright product, darker background)
+
+Camera:
+
+* Close-up perspective
+* Natural lens (no distortion)
+
+Text:
+
+* Add the text: WORTH IT?
+* Place the text at the TOP of the image
+* Text must be big, bold, and easy to read
+* Use a clean sans-serif font (similar to YouTube thumbnails)
+* Text color: white or slightly off-white
+* thin black outline
+* Ensure strong contrast with the background
+* Keep text clean and sharp (not stylized, no glow, no effects)
+
+Style:
+
+* Realistic DSLR photo
+
+Composition:
+
+* Clean and minimal
+
+Constraints:
+
+* No glow effects
+* No extra objects
+* No symmetry
+* Do not distort the product

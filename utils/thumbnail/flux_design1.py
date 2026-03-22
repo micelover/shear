@@ -1,5 +1,4 @@
 from utils.core.config import DATA_PATH, UTILS_PATH
-from utils.core.edit import open_ai_generation
 from utils.thumbnail.images import get_images
 from dotenv import load_dotenv
 import base64
@@ -11,6 +10,7 @@ load_dotenv()
 _flux_prompt_template: str = ""
 
 
+
 def _load_flux_prompt() -> str:
     global _flux_prompt_template
     if not _flux_prompt_template:
@@ -20,13 +20,10 @@ def _load_flux_prompt() -> str:
 
 
 def _generate_flux_prompt(product, product_type: str) -> str:
-    template = _load_flux_prompt()
-    prompt_text = (
-        template
-        .replace("{product_name}", product.simple_title)
+    return (
+        _load_flux_prompt()
         .replace("{product_type}", product_type)
     )
-    return open_ai_generation(prompt_text, model="gpt-5-mini", temperature=0.7).strip()
 
 
 def _flux_img2img(prompt: str, image_path: str, output_path: str) -> None:
@@ -37,18 +34,16 @@ def _flux_img2img(prompt: str, image_path: str, output_path: str) -> None:
     image_url = f"data:image/png;base64,{b64}"
 
     response = requests.post(
-        "https://fal.run/fal-ai/flux/dev/image-to-image",
+        "https://fal.run/fal-ai/flux-2/klein/9b/edit/lora",
         headers={
             "Authorization": f"Key {api_key}",
             "Content-Type": "application/json",
         },
         json={
             "prompt": prompt,
-            "image_url": image_url,
+            "image_urls": [image_url],
             "image_size": {"width": 1280, "height": 720},
-            "strength": 0.75,
-            "num_inference_steps": 28,
-            "guidance_scale": 3.5,
+            "num_inference_steps": 8,
         },
         timeout=120,
     )

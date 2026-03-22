@@ -3,7 +3,7 @@ from utils.core.models import release_dino
 from utils.core.settings import THUMBNAIL_IMG_COUNT
 from utils.thumbnail.design1 import create_design1
 from utils.thumbnail.design2 import create_design2
-from utils.thumbnail.flux_design import create_flux_design
+from utils.thumbnail.flux_design1 import create_flux_design
 from utils.thumbnail.images import get_images
 
 from datetime import datetime
