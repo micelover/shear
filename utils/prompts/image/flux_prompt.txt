@@ -53,7 +53,7 @@ Text:
 * Text must be big, bold, and easy to read
 * Use a clean sans-serif font (similar to YouTube thumbnails)
 * Text color: white or slightly off-white
-* thin black outline
+* red outline
 * Ensure strong contrast with the background
 * Keep text clean and sharp (not stylized, no glow, no effects)
 
