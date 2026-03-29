@@ -10,53 +10,37 @@ _prompts: dict[str, str] = {}
 def _load_prompts() -> dict[str, str]:
     if _prompts:
         return _prompts
-    for name in ["title", "title_pick", "description", "tags"]:
+    for name in ["title_strategist", "title_copywriter", "description", "tags"]:
         with open(f"{UTILS_PATH}/prompts/{name}.txt") as f:
             _prompts[name] = f.read()
     return _prompts
-
-
-def _parse_titles(response: str) -> list[str]:
-    titles = []
-    for line in response.strip().splitlines():
-        line = line.strip()
-        if line and line[0].isdigit() and '.' in line:
-            title = line.split('.', 1)[1].strip()
-            if title:
-                titles.append(title[:65])
-    return titles
-
-
-def _pick_best_title(titles: list[str]) -> str:
-    prompts = _load_prompts()
-    numbered = "\n".join(f"{i+1}. {t}" for i, t in enumerate(titles))
-    pick_prompt = prompts["title_pick"].replace("{titles}", numbered)
-    response = open_ai_generation(pick_prompt, model="gpt-5-mini", temperature=0)
-    if response:
-        try:
-            idx = int(response.strip()) - 1
-            if 0 <= idx < len(titles):
-                return titles[idx]
-        except ValueError:
-            pass
-    return titles[0]
 
 
 def _generate_title(product_title, price=""):
     prompts = _load_prompts()
     title = f"{product_title} Review – Is It Good?"
 
-    title_prompt = (
-        prompts["title"]
+    # Step 1: Strategist — pick angle
+    strategist_response = open_ai_generation(
+        prompts["title_strategist"]
         .replace("{product_name}", product_title)
-        .replace("{price}", price or "N/A")
+        .replace("{price}", price or "N/A"),
+        model="gpt-5-mini",
+        temperature=0.7,
     )
-    title_response = open_ai_generation(title_prompt, model="gpt-5-mini", temperature=0.7)
-    if title_response:
-        titles = _parse_titles(title_response)
-        if titles:
-            print(f"[Title] Candidates: {titles}")
-            title = _pick_best_title(titles) if len(titles) > 1 else titles[0]
+    if not strategist_response:
+        return title
+    
+    print("Strategist Response", strategist_response)
+
+    # Step 2: Copywriter — write final title using angle
+    copywriter_response = open_ai_generation(
+        prompts["title_copywriter"].replace("{analyst_output}", strategist_response.strip()),
+        model="gpt-5-mini",
+        temperature=0.7,
+    )
+    if copywriter_response:
+        title = copywriter_response.strip()[:65]
 
     return title
 
@@ -110,8 +94,6 @@ def _generate_tags(product_name):
 
 
 def generate_data(product):
-    print("product.simple_title:", product.simple_title)
-
     title = _generate_title(product.simple_title, product.price)
     description = _generate_description(product)
     tags = _generate_tags(product.simple_title)

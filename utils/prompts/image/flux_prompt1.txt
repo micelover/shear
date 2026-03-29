@@ -1,0 +1,61 @@
+Image 1 is the product.
+Image 2 is the person.
+
+The product is a: {product_type}
+
+Create a realistic YouTube thumbnail in a tech review style:
+
+Layout:
+
+* Person on the LEFT, product on the RIGHT
+* Clean composition with strong contrast
+* Leave space at the TOP for text
+
+Product (Image 1):
+
+* Use Image 1 exactly as the product
+* Do NOT redesign or change it
+* Medium size (~30–40% of the frame)
+* Do NOT exaggerate the size of the product
+* The product should look realistic relative to the person
+* Slight angle toward the camera
+* Place it slightly lower than center
+
+* The product is NOT on a table or surface
+* Add a subtle soft shadow or contact shadow underneath to ground it
+* The product must NOT look like it is floating unnaturally
+
+Person (Image 2):
+
+* Use Image 2 as the person
+* Place on the LEFT side
+* Large, clear, and sharp (~40–50% of frame)
+* Pointing directly at the product
+* Looking at the product
+* Strong, expressive emotion (surprised, curious, or skeptical)
+* Clean cutout (no original background)
+
+Background:
+
+* Clean blue gradient background
+* Smooth transition from darker blue at the edges to lighter blue near the center
+* Slightly brighter area behind the product for focus
+* No clutter or objects
+
+Lighting:
+
+* Bright, even lighting on both person and product
+* Subjects clearly stand out from the background
+
+Style:
+
+* Realistic, high-contrast YouTube thumbnail
+* Clean and modern
+
+Constraints:
+
+* No glow effects
+* No table or surface
+* No extra objects in the foreground
+* No text
+* Do not distort the product or person

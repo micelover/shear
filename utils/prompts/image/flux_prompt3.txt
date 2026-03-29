@@ -1,0 +1,74 @@
+Image 1 is the product.
+Image 2 is the person.
+
+The product is a: {product_type}
+
+Create a realistic YouTube thumbnail in a tech review style:
+
+Layout:
+
+* Person on the LEFT, product on the RIGHT
+* Clean composition with strong contrast
+* Leave space at the TOP for text
+
+Product (Image 1):
+
+* Use Image 1 as the base product
+* Keep the shape and proportions EXACTLY the same
+* Do NOT redesign or distort the product
+
+* The product should be medium size (~30–40% of the frame)
+* Do NOT exaggerate the size
+* Slight angle toward the camera
+* Place slightly lower than center
+
+* The product is NOT on a table or surface
+* Add a subtle soft shadow underneath for grounding
+
+Mystery Effect:
+
+* Turn the product into a dark silhouette (mostly blacked out)
+* Keep the outer shape clearly visible
+* Remove most visible details while preserving recognizable outline
+* Add a large, bold question mark (?) centered over the product
+* The question mark should be bright (white or light color) and highly visible
+
+Person (Image 2):
+
+* Use Image 2 as the person
+* Place on the LEFT side
+* Large, clear, and sharp (~40–50% of frame)
+* Pointing directly at the product
+* Looking at the product
+
+* The facial expression must be strong, exaggerated, and clearly shocked/surprised
+  (wide eyes, open mouth, high intensity reaction)
+
+* Clean cutout (no original background)
+
+Background:
+
+* Clean blue gradient background
+* Smooth transition from darker blue at edges to lighter near center
+* Slightly brighter area behind the product
+* No clutter or objects
+
+Lighting:
+
+* Bright lighting on the person
+* The silhouette product should still have slight edge lighting to define shape
+* High contrast between subjects and background
+
+Style:
+
+* Realistic YouTube thumbnail style
+* Clean, modern, high contrast
+* Designed for high click-through rate (CTR)
+
+Constraints:
+
+* No glow effects
+* No table or surface
+* No extra objects
+* No text except the question mark
+* Do not distort the product or person

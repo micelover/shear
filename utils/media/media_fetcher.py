@@ -6,9 +6,11 @@ from utils.media_fetcher.extract import extract_videos_from_url
 from utils.media_fetcher.videos import get_google_videos
 from utils.media_fetcher.download import download_video
 
+from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 import requests
+import threading
 import os
 
 
@@ -121,61 +123,40 @@ class MediaFetcher():
     def _download_classified_videos(self, classified, out_dir):
         downloaded = []
         used = set()
+        lock = threading.Lock()
+
+        # Build priority-ordered, deduplicated URL list
+        seen = set()
+        ordered = []
+        for url in [
+            *classified.get("amazon", []),
+            *classified.get("cdn", []),
+            *(u for p, urls in classified.items() if p not in {"youtube", "amazon", "cdn"} for u in urls),
+            *classified.get("youtube", []),
+        ]:
+            if url not in seen:
+                seen.add(url)
+                ordered.append(url)
 
         def try_download(url):
-            # if url.endswith(".m3u8"):
-            #     print(f"[download] ⏭️ Skipping HLS playlist: {url}")
-            #     used.add(url)
-            #     return False
-
-            if url in used:
-                return False
-            if len(downloaded) >= self.LIMIT_VIDEOS:
-                return False
+            with lock:
+                if url in used or len(downloaded) >= self.LIMIT_VIDEOS:
+                    return
+                used.add(url)
 
             try:
                 path = download_video(url, out_dir)
-
                 if not is_valid_media_file(path, delete_if_invalid=True):
                     print(f"[download] ⚠️ Invalid file for URL: {url}")
-                    used.add(url)
-                    return False
-
-                used.add(url)
-                downloaded.append(path)
-                return True
-
+                    return
+                with lock:
+                    if len(downloaded) < self.LIMIT_VIDEOS:
+                        downloaded.append(path)
             except Exception as e:
                 print(f"[download] ❌ Failed: {url} | {e}")
-                used.add(url)
-                return False
-            
-        if len(downloaded) >= self.LIMIT_VIDEOS:
-            return downloaded
 
-        for url in classified.get("amazon", []):
-            if len(downloaded) >= self.LIMIT_VIDEOS:
-                return downloaded
-            try_download(url)
-
-        for url in classified.get("cdn", []):
-            if len(downloaded) >= self.LIMIT_VIDEOS:
-                return downloaded
-            try_download(url)
-
-        for platform, urls in classified.items():
-            if platform in {"youtube", "amazon", "cdn"}:
-                continue
-            for url in urls:
-                if len(downloaded) >= self.LIMIT_VIDEOS:
-                    return downloaded
-                try_download(url)
-
-        for url in classified.get("youtube", []):
-            if len(downloaded) >= self.LIMIT_VIDEOS:
-                return downloaded
-            try_download(url)
-
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            list(executor.map(try_download, ordered))
 
         return downloaded
 

@@ -15,6 +15,7 @@ from serpapi import GoogleSearch
 import os
 import base64
 from pathlib import Path
+import functools
 import subprocess
 import json
 from pydub import AudioSegment
@@ -270,35 +271,6 @@ def find_images(folder: str, recursive: bool = False):
 
     return image_paths
 
-# def open_ai_edit_img(prompt, input_paths, output_path, model="gpt-image-1"):
-#     """
-#     input_paths: list of image file paths
-#     """
-
-#     size_str = "1536x1024"
-
-#     # Read all images into a list of bytes
-#     image_bytes_list = []
-
-#     for path in input_paths:
-#         with open(path, "rb") as f:
-#             image_bytes_list.append(f.read())
-
-#     result = openAI_client.images.edit(
-#         model=model,
-#         prompt=prompt,
-#         image=image_bytes_list,   # <-- LIST of images
-#         size=size_str
-#     )
-
-#     image_base64 = result.data[0].b64_json
-#     img_data = base64.b64decode(image_base64)
-
-#     with open(output_path, "wb") as f:
-#         f.write(img_data)
-
-#     print("✅ Image generated with multiple references.")
-
 def open_ai_edit_img(prompt, image_paths, output_path):
     image_files = []
 
@@ -434,6 +406,7 @@ def get_audio_duration(path):
     data = json.loads(result.stdout)
     return float(data["format"]["duration"])
 
+@functools.lru_cache(maxsize=128)
 def get_video_duration(path):
     result = subprocess.run(
         [
