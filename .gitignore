@@ -88,6 +88,10 @@ data/
 *.png
 *.jpg
 
+# Allow static source assets
+!source/**/*.png
+!source/**/*.jpg
+
 # ML weights
 weights/
 models/
