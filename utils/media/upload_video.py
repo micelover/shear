@@ -144,38 +144,3 @@ def ensure_commentable_privacy(youtube, video_id):
     
     return True
 
-# def add_pinned_comment(youtube, video_id: str, text: str):
-#     """
-#     Adds and pins a top-level comment on a YouTube video.
-#     Must be authenticated as the channel owner.
-#     """
-
-#     comment_status = ensure_commentable_privacy(youtube, video_id)
-#     if comment_status is False:
-#         return False
-
-#     # Step 1: Create comment
-#     comment_response = youtube.commentThreads().insert(
-#         part="snippet",
-#         body={
-#             "snippet": {
-#                 "videoId": video_id,
-#                 "topLevelComment": {
-#                     "snippet": {
-#                         "textOriginal": text
-#                     }
-#                 }
-#             }
-#         }
-#     ).execute()
-
-#     comment_id = comment_response["id"]
-
-#     # Step 2: Pin comment (publish moderation status)
-#     youtube.comments().setModerationStatus(
-#         id=comment_id,
-#         moderationStatus="published"
-#     ).execute()
-
-#     print("📌 Pinned comment added successfully!")
-#     return comment_id
