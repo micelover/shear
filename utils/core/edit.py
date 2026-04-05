@@ -298,7 +298,7 @@ def gemini_edit_img(prompt, image_paths, output_path):
     from google.genai import types
     import mimetypes as _mimetypes
 
-    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+    client = genai.Client(api_key=os.environ.get("SHEARS_GEMINI_API_KEY"))
 
     if isinstance(image_paths, str):
         image_paths = [image_paths]
