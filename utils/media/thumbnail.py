@@ -12,9 +12,11 @@ import os
 
 
 def ai_design1(product, product_type):
-    all_img = get_images(product, fetch_count=6, num_images=2)
+    all_img = get_images(product.title, product_type, fetch_count=6, num_images=2)
 
-    print
+    if not all_img:
+        print("❌ No images found for thumbnail")
+        return
 
     create_ai_design1(product, random.choice(all_img), product_type)
 
