@@ -275,7 +275,15 @@ def crop_to_16_9(input_path, output_path):
     target_height = int(width * 9 / 16)
 
     if target_height > height:
-        raise ValueError("Image is too short to crop to 16:9.")
+        # Portrait/square image — crop width to fit 16:9 then resize
+        target_width = int(height * 16 / 9)
+        left = (width - target_width) // 2
+        if target_width < width:
+            img = img.crop((left, 0, left + target_width, height))
+        img = img.resize((1280, 720), Image.Resampling.LANCZOS)
+        img.save(output_path)
+        print(f"✅ Resized portrait to 16:9.")
+        return
 
     top = _smart_crop_top(img, height, target_height)
     img.crop((0, top, width, top + target_height)).save(output_path)

@@ -1,7 +1,7 @@
 from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
 from utils.core.models import get_grounding_dino
 from utils.thumbnail.render import crop_to_16_9
-from utils.core.edit import open_ai_generation, open_ai_edit_img
+from utils.core.edit import open_ai_generation, gemini_edit_img
 
 import cv2
 import numpy as np
@@ -176,7 +176,9 @@ def create_ai_design1(product, images, product_type):
         ai_prompt = orignial_ai_design_big_prompt.replace("{headline_text}", headline)
 
 
-    open_ai_edit_img(ai_prompt, images, thumbnail_path)
+    gemini_edit_img(ai_prompt, images, thumbnail_path)
+    raw = Image.open(thumbnail_path)
+    print(f"Thumbnail base dimensions: {raw.size[0]}x{raw.size[1]}")
     crop_to_16_9(thumbnail_path, thumbnail_path)
 
     # if classify == "SMALL":

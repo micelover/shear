@@ -1,82 +1,54 @@
-⚠️ CROP SAFETY ZONE — HIGHEST PRIORITY RULE
-This image will be hard-cropped to 16:9 for YouTube. The top 10% and bottom 10% of the frame will be removed.
-REQUIREMENT: No face, hand, or product edge may appear in the top 10% or bottom 10% of the frame.
-These zones must contain ONLY background/environment.
-Every subject (person, product, hands) must be fully contained within the center 80% of the vertical frame.
-Compose as if the top and bottom 10% strips do not exist.
+Create a realistic YouTube tech review thumbnail (photo style, not AI art).
+TEXT (TOP-LEFT)
+* Add bold text: "BUY THIS?” (or similar)
+* Place in upper-left corner
+* Large, clean, high contrast (white with dark outline/shadow)
+* Must be clearly readable
+* Do NOT overlap product or face
 
-TEXT OVERLAY ZONE
-Bold text (e.g. "Worth It?") will be overlaid on the upper-left area of the final image.
-REQUIREMENT: The upper-left quadrant must be clean, low-detail background — no faces, hands, or product edges.
-This area must have enough negative space and contrast for white or black bold text to be legible.
+LAYOUT
+* Product on LEFT (foreground, closest to camera)
+* Person on RIGHT (background, slightly blurred)
+* Camera pulled back with lots of breathing room
+* Strong depth: product close → person behind
 
-Create a high click-through-rate YouTube thumbnail scene for a tech review video using strong foreground/background depth.
-The image must look like a real photo captured during filming — spontaneous, natural, and believable. It must not look like a graphic design poster or an AI render.
-Colors should appear slightly more vibrant and saturated than normal camera output, while still remaining natural and realistic. The product colors should pop slightly without looking artificially edited.
+PRODUCT (MAIN FOCUS)
+* Closest + sharpest object
+* Takes ~15–20% of frame width
+* Held naturally in one hand
+* Slight tilt allowed
+* Real textures (glass, metal, plastic)
+* Natural reflections + soft highlights
+* Must pop using depth of field (NOT glow)
 
-FRAME COMPOSITION
-Design the image with a left-heavy layout and strong visual hierarchy.
-The product must appear in the left third of the frame, leaving clear negative space above and to the left of the product so headline text can be added later.
-The camera should feel pulled back — the overall scene should feel spacious, not tight or close-cropped.
-Leave clear breathing room around the product:
-• open space above the product
-• open space to the left of the product
-The composition should intentionally reserve the upper-left quadrant for future thumbnail text.
-Nothing important should occupy that area.
+PERSON (SUPPORTING)
+* Behind product on right
+* Slightly blurred (shallow depth of field)
+* Pointing at product
+* Natural expression:
+    * curious / skeptical / impressed / slight regret
+* NOT exaggerated
 
-LEFT SIDE — FOREGROUND PRODUCT
-• Product extremely close to the camera lens
-• Occupies roughly 15–18% of frame width
-• Clearly the sharpest object in the image
-• Held casually in one hand
-• Slight natural tilt allowed
-• Visible material texture and realistic detail
-• Subtle light reflections on surfaces (glass, plastic, metal)
-• Product must separate from background using true optical depth of field, not glow effects
-• Product must feel physically closer to the viewer than anything else in the frame
-• Product should sit slightly below vertical center
+BACKGROUND
+* Real desk/workspace
+* Slight blur
+* Darker + less saturated than product
+* Clean, not cluttered
 
-Important framing rule:
-Leave clean space above the product so arrow graphics or labels could be added later.
-The product should visually outweigh the hand, but the hand must still look natural and believable.
+CAMERA / STYLE
+* Real photo look (not rendered)
+* 50mm lens feel, f/1.8–f/2.8
+* Soft indoor lighting (window or room light)
+* Natural shadows + skin texture
+* Slightly boosted color for pop
+* No glow, no HDR, no heavy editing
 
-RIGHT SIDE — BACKGROUND HUMAN
-• Person positioned behind the product on the right side
-• Face softly blurred due to shallow depth of field
-• The person must be fully within the center 80% of the vertical frame — top and bottom 10% will be cropped
-• Person pointing toward the product
-• Expression subtle and believable:
-* quiet realization
-* mild regret
-* thoughtful skepticism
-* impressed surprise
-Avoid exaggerated YouTube reaction faces.
-The human should visually support the product, not compete with it.
+VISUAL PRIORITY
+1. Product (instantly grabs attention)
+2. Human reaction
+3. Text supports both
 
-CAMERA & REALISM
-The camera should feel pulled back so the composition leaves generous breathing room around the subjects.
-The image should feel like it was shot on a 50mm lens at f/1.8–f/2.8 indoors.
-• Realistic shallow depth of field
-• Natural indoor lighting (window light or soft room light)
-• Slight natural shadows
-• Natural skin texture with small imperfections
-• Slight color vibrancy for visual pop
-• No cinematic color grading
-• No HDR look
-• No artificial glow
-• No extreme sharpening
-• Very subtle vignette allowed
-Lighting should create soft highlights on the product so it visually pops against the background.
-
-COLOR & CONTRAST
-Use slightly elevated saturation and contrast to improve thumbnail visibility.
-• Product colors should appear rich and vibrant
-• Background should be slightly muted so the product stands out
-• Avoid dull or gray color palettes
-• Maintain natural skin tones
-
-VISUAL PRIORITY (STRICT ORDER)
-1️⃣ Product
-2️⃣ Facial reaction
-The viewer must notice the product instantly, then the human reaction.
-The product should visually anchor the entire frame.
+GOAL
+* High CTR
+* Clean, realistic, trustworthy
+* Strong depth + clear focus on product

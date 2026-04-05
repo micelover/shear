@@ -293,6 +293,40 @@ def open_ai_edit_img(prompt, image_paths, output_path):
     for f in image_files:
         f.close()
 
+def gemini_edit_img(prompt, image_paths, output_path):
+    from google import genai
+    from google.genai import types
+    import mimetypes as _mimetypes
+
+    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+    if isinstance(image_paths, str):
+        image_paths = [image_paths]
+
+    parts = []
+    for path in image_paths:
+        mime_type, _ = _mimetypes.guess_type(path)
+        with open(path, "rb") as f:
+            parts.append(types.Part.from_bytes(data=f.read(), mime_type=mime_type or "image/png"))
+    parts.append(types.Part.from_text(text=prompt))
+
+    contents = [types.Content(role="user", parts=parts)]
+    config = types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(thinking_level="MINIMAL"),
+        image_config=types.ImageConfig(aspect_ratio="16:9"),
+        response_modalities=["IMAGE", "TEXT"],
+    )
+
+    for chunk in client.models.generate_content_stream(
+        model="gemini-3.1-flash-image-preview",
+        contents=contents,
+        config=config,
+    ):
+        if chunk.parts and chunk.parts[0].inline_data and chunk.parts[0].inline_data.data:
+            with open(output_path, "wb") as f:
+                f.write(chunk.parts[0].inline_data.data)
+            return
+
 def robust_json_loads(response: str):
     if not response:
         raise ValueError("Empty response from model.")
