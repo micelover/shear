@@ -293,7 +293,7 @@ def open_ai_edit_img(prompt, image_paths, output_path):
     for f in image_files:
         f.close()
 
-def gemini_edit_img(prompt, image_paths, output_path):
+def gemini_edit_img(prompt, image_paths, output_path, max_retries=3, base_delay=2):
     from google import genai
     from google.genai import types
     import mimetypes as _mimetypes
@@ -317,15 +317,23 @@ def gemini_edit_img(prompt, image_paths, output_path):
         response_modalities=["IMAGE", "TEXT"],
     )
 
-    for chunk in client.models.generate_content_stream(
-        model="gemini-3.1-flash-image-preview",
-        contents=contents,
-        config=config,
-    ):
-        if chunk.parts and chunk.parts[0].inline_data and chunk.parts[0].inline_data.data:
-            with open(output_path, "wb") as f:
-                f.write(chunk.parts[0].inline_data.data)
-            return
+    for attempt in range(max_retries):
+        try:
+            for chunk in client.models.generate_content_stream(
+                model="gemini-3.1-flash-image-preview",
+                contents=contents,
+                config=config,
+            ):
+                if chunk.parts and chunk.parts[0].inline_data and chunk.parts[0].inline_data.data:
+                    with open(output_path, "wb") as f:
+                        f.write(chunk.parts[0].inline_data.data)
+                    return
+        except Exception as e:
+            print(f"⚠️ Gemini attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(base_delay * (2 ** attempt))
+
+    print("❌ Gemini image generation failed after all retries.")
 
 def robust_json_loads(response: str):
     if not response:
