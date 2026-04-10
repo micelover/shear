@@ -1,54 +1,63 @@
-Create a realistic YouTube tech review thumbnail (photo style, not AI art).
+PRODUCT FIDELITY (VERY IMPORTANT)
+* The product must look like a real photographed commercial product
+* It must be exactly consistent with a real-world item (no redesign, no reinterpretation)
+* Preserve:
+    * correct proportions
+    * real materials (glass, metal, plastic, rubber, fabric)
+    * accurate seams, buttons, ports, labels, and logos (if visible)
+* If unsure, default to a generic but realistic product design (Apple / Samsung / Sony-level realism)
+* Do NOT stylize or “improve” the product design in any way
+* Do NOT make it look like a render, concept art, or 3D model
+PRODUCT (MAIN FOCUS — STRICT REALISM)
+* Closest + sharpest object in frame
+* Held naturally in one hand (real grip, relaxed fingers)
+* Must look like it was photographed in a real studio or real room
+* No artificial smoothing, no plastic look, no waxy surfaces
+* Visible imperfections allowed (micro-scratches, fingerprints, slight reflections)
+* Natural lighting interaction (real specular highlights only)
+* NO glow, NO bloom, NO CGI lighting
+NEGATIVE PRODUCT RULES (IMPORTANT)
+* no AI-generated object design
+* no melted shapes or warped geometry
+* no overly perfect “toy-like” surfaces
+* no exaggerated thickness or unrealistic curves
+* no fake branding or random symbols
+* no fantasy redesign of the device
+
 TEXT (TOP-LEFT)
-* Add bold text: "BUY THIS?” (or similar)
-* Place in upper-left corner
-* Large, clean, high contrast (white with dark outline/shadow)
-* Must be clearly readable
-* Do NOT overlap product or face
+* Bold: BUY THIS?
+* Upper-left corner only
+* High contrast (white with dark outline/shadow)
+* Must NOT overlap product or face
 
 LAYOUT
-* Product on LEFT (foreground, closest to camera)
+* Product on LEFT (foreground, closest to camera, ~15–20% width)
 * Person on RIGHT (background, slightly blurred)
-* Camera pulled back with lots of breathing room
-* Strong depth: product close → person behind
+* Strong depth separation (product sharp → person soft)
+* Camera pulled back, natural framing
 
-PRODUCT (MAIN FOCUS)
-* Closest + sharpest object
-* Takes ~15–20% of frame width
-* Held naturally in one hand
-* Slight tilt allowed
-* Real textures (glass, metal, plastic)
-* Natural reflections + soft highlights
-* Must pop using depth of field (NOT glow)
-
-PERSON (SUPPORTING)
-* Behind product on right
-* Slightly blurred (shallow depth of field)
-* Pointing at product
-* Natural expression:
-    * curious / skeptical / impressed / slight regret
-* NOT exaggerated
+PERSON (SECONDARY)
+* Slightly out of focus (real shallow DOF blur)
+* Pointing at product naturally
+* Expression: curious / skeptical / impressed
+* Real skin texture, no exaggeration
 
 BACKGROUND
-* Real desk/workspace
+* Real desk / workspace environment
 * Slight blur
 * Darker + less saturated than product
-* Clean, not cluttered
+* Clean and believable (no clutter overload)
 
 CAMERA / STYLE
-* Real photo look (not rendered)
-* 50mm lens feel, f/1.8–f/2.8
-* Soft indoor lighting (window or room light)
-* Natural shadows + skin texture
-* Slightly boosted color for pop
-* No glow, no HDR, no heavy editing
+* Photorealistic DSLR look (NOT CGI)
+* 50mm lens, f/1.8–f/2.8 depth of field
+* Natural indoor lighting (window or soft lamp)
+* Real shadows, real reflections
+* Slight color boost only (no HDR, no glow, no bloom)
 
 VISUAL PRIORITY
-1. Product (instantly grabs attention)
+1. Product (must feel real and tangible)
 2. Human reaction
-3. Text supports both
+3. Text overlay
 
-GOAL
-* High CTR
-* Clean, realistic, trustworthy
-* Strong depth + clear focus on product
+

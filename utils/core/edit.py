@@ -324,10 +324,14 @@ def gemini_edit_img(prompt, image_paths, output_path, max_retries=3, base_delay=
                 contents=contents,
                 config=config,
             ):
-                if chunk.parts and chunk.parts[0].inline_data and chunk.parts[0].inline_data.data:
-                    with open(output_path, "wb") as f:
-                        f.write(chunk.parts[0].inline_data.data)
-                    return
+                if not chunk.parts:
+                    continue
+                for part in chunk.parts:
+                    print(f"[Gemini] part type: {type(part)}, has inline_data: {part.inline_data is not None}")
+                    if part.inline_data and part.inline_data.data:
+                        with open(output_path, "wb") as f:
+                            f.write(part.inline_data.data)
+                        return
         except Exception as e:
             print(f"⚠️ Gemini attempt {attempt + 1}/{max_retries} failed: {e}")
             if attempt < max_retries - 1:
