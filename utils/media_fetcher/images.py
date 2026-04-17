@@ -67,7 +67,7 @@ def _download_and_validate_image(url, out_dir, product_type: str = "", min_width
         prompt = _cutout_check_prompt.replace("{product_type}", product_type or "product")
         result = open_ai_generation(
             prompt,
-            model="gpt-4.1",
+            model="gpt-4.1-mini",
             temperature=0,
             images=[work_path, cutout_path],
         )

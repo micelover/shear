@@ -29,7 +29,7 @@ SCRIPT_LENGTH = {"low": "400", "high": "500"}
 # SCRIPT_LENGTH = {"low": "25", "high": "50"}
 
 BACKGROUND_LIMITS = {
-    "LIMIT_IMG": 10,
+    "LIMIT_IMG": 5,
     "LIMIT_WEBPAGES": 10,
 
     "LIMIT_FETCH_VIDEOS": 10,

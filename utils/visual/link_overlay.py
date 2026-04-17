@@ -23,7 +23,7 @@ def _overlay_time_range(srt_path):
         srt_text = f.read().strip()
 
     intro_info_prompt = orignial_links_prompt.replace("{srt}", srt_text)
-    response = open_ai_generation(intro_info_prompt, model="gpt-4.1", temperature=0.5).strip()
+    response = open_ai_generation(intro_info_prompt, model="gpt-4.1-mini", temperature=0.5).strip()
 
     try:
         overlay_times = json.loads(response)

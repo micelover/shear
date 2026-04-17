@@ -37,7 +37,7 @@ def process_single_image(url, product_type: str = ""):
 
         prompt = cutout_check_prompt.replace("{product_type}", product_type or "product")
         result = open_ai_generation(prompt,
-            model="gpt-4.1",
+            model="gpt-4.1-mini",
             temperature=0,
             images=[work_path, cutout_path],
         )

@@ -226,6 +226,7 @@ class Visual():
             if not valid_videos and not images:
                 break
 
+            clip_info = None
             if random.random() < 0.95 and valid_videos:
                 clip_info = choose_clip_body(valid_videos, est_time, self.pipeline.keywords, USED_WINDOWS)
                 if clip_info:
@@ -238,7 +239,8 @@ class Visual():
                         "duration":   est_time,
                         "clip_start": start_time,
                     })
-            else:
+
+            if not clip_info:
                 if not images:
                     continue
                 random_img = random.choice(images)

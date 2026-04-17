@@ -32,7 +32,7 @@ class Audio():
             .replace("{low}", SCRIPT_LENGTH["low"])
             .replace("{high}", SCRIPT_LENGTH["high"])
         )
-        script = open_ai_generation(script_prompt, model="gpt-4.1", temperature=0.5)
+        script = open_ai_generation(script_prompt, model="gpt-4.1-mini", temperature=0.5)
 
         return script
 
@@ -91,8 +91,6 @@ class Audio():
         self.pipeline.script = script
         script = script.replace("\n", " ")
         print(script)
-
-        open_ai_tts(script=script, save_path=paths['audio'], instructions=self.audio_instructions)
 
         chunks = self.chunk_text(script)
         all_parts = []

@@ -2,7 +2,6 @@ from utils.core.config import DATA_PATH
 from utils.core.models import release_dino
 from utils.thumbnail.images import get_images
 from utils.thumbnail.ai_design1 import create_ai_design1
-import random
 
 from PIL import Image
 import gc
@@ -12,13 +11,13 @@ import os
 
 
 def ai_design1(product, product_type):
-    all_img = get_images(product.title, product_type, fetch_count=6, num_images=2)
+    all_img = get_images(product.title, product_type, fetch_count=4, num_images=1)
 
     if not all_img:
         print("❌ No images found for thumbnail")
         return
 
-    create_ai_design1(product, random.choice(all_img), product_type)
+    create_ai_design1(product, all_img[0], product_type)
 
 def compress_thumbnail(thumbnail_path):
     max_size = 2 * 1024 * 1024  # 2MB
