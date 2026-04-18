@@ -16,33 +16,13 @@ def _load_prompts() -> dict[str, str]:
     return _prompts
 
 
+_TITLE_TEMPLATES = [
+    "{p} Review – Is It Worth It?",
+    "I Tested the {p} – Here's My Verdict",
+]
+
 def _generate_title(product_title, price=""):
-    prompts = _load_prompts()
-    title = f"{product_title} Review – Is It Good?"
-
-    # Step 1: Strategist — pick angle
-    strategist_response = open_ai_generation(
-        prompts["title_strategist"]
-        .replace("{product_name}", product_title)
-        .replace("{price}", price or "N/A"),
-        model="gpt-5-mini",
-        temperature=0.7,
-    )
-    if not strategist_response:
-        return title
-    
-    print("Strategist Response", strategist_response)
-
-    # Step 2: Copywriter — write final title using angle
-    copywriter_response = open_ai_generation(
-        prompts["title_copywriter"].replace("{analyst_output}", strategist_response.strip()),
-        model="gpt-5-mini",
-        temperature=0.7,
-    )
-    if copywriter_response:
-        title = copywriter_response.strip()[:65]
-
-    return title
+    return random.choice(_TITLE_TEMPLATES).replace("{p}", product_title)
 
 
 def _generate_description(product):
