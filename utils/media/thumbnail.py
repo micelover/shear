@@ -53,16 +53,20 @@ def compress_thumbnail(thumbnail_path):
         img.save(jpg_path, 'JPEG', quality=85)
         os.replace(jpg_path, thumbnail_path)
 
-def generate_thumbnail(pipeline):  
+def generate_thumbnail(pipeline):
 
     # design1(product)
     # design2(product)
     ai_design1(pipeline.product, pipeline.product_type)
     release_dino()  # free ~800MB immediately after DINO is done
 
-    compress_thumbnail(f"{DATA_PATH}/thumbnail.png")
+    thumbnail_path = f"{DATA_PATH}/thumbnail.png"
+    if os.path.exists(thumbnail_path):
+        compress_thumbnail(thumbnail_path)
+    else:
+        print("⚠️ Thumbnail was not generated, skipping compression.")
 
-    gc.collect()    
+    gc.collect()
 
 
 
