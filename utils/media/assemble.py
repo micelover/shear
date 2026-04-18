@@ -66,9 +66,18 @@ def add_audio_to_visual(audio_path, visual_path, output_path):
     audio = AudioFileClip(audio_path)
     audio = audio.with_effects([afx.MultiplyVolume(2.5)])
 
+    room_path = f"{SOURCE_PATH}/sfx/room.mp3"
+    if os.path.exists(room_path):
+        room = AudioFileClip(room_path)
+        room = _loop_audio_to_duration(room, audio.duration)
+        room = room.with_effects([afx.MultiplyVolume(0.04)])
+        mixed = CompositeAudioClip([audio, room])
+    else:
+        mixed = audio
+
     visual = VideoFileClip(visual_path)
 
-    final = visual.with_audio(audio).with_duration(audio.duration)
+    final = visual.with_audio(mixed).with_duration(audio.duration)
     final.write_videofile(output_path, codec="libx264", fps=32, threads=os.cpu_count(), preset="ultrafast")
     audio.close()
     visual.close()

@@ -115,33 +115,41 @@ class Visual():
                     continue
                 new_start_in_seg = overlap_start - t
 
-                if desc["type"] == "video":
-                    src_offset = overlap_start - clip_start
-                    src_start  = desc["src_start"] + src_offset
-                    src_end    = src_start + new_dur
+                try:
+                    if desc["type"] == "video":
+                        src_offset = overlap_start - clip_start
+                        src_start  = desc["src_start"] + src_offset
+                        src_end    = src_start + new_dur
 
-                    root = VideoFileClip(desc["path"])
-                    opened_roots.append(root)
-                    clip = (
-                        root
-                        .subclipped(src_start, src_end)
-                        .resized(height=self.video_size[1])
-                        .with_position(("center", "center"))
-                        .with_duration(new_dur)
-                        .with_start(new_start_in_seg)
-                    )
-                else:  # image
-                    root = ImageClip(desc["path"]).resized(height=self.video_size[1])
-                    opened_roots.append(root)
-                    pos  = ((self.video_size[0] - root.w) // 2, 0)
-                    clip = (
-                        root
-                        .with_position(pos)
-                        .with_duration(new_dur)
-                        .with_start(new_start_in_seg)
-                    )
+                        root = VideoFileClip(desc["path"])
+                        src_end = min(src_end, root.duration - 0.01)
+                        if src_end <= src_start:
+                            root.close()
+                            continue
+                        opened_roots.append(root)
+                        clip = (
+                            root
+                            .subclipped(src_start, src_end)
+                            .resized(height=self.video_size[1])
+                            .with_position(("center", "center"))
+                            .with_duration(new_dur)
+                            .with_start(new_start_in_seg)
+                        )
+                    else:  # image
+                        root = ImageClip(desc["path"]).resized(height=self.video_size[1])
+                        opened_roots.append(root)
+                        pos  = ((self.video_size[0] - root.w) // 2, 0)
+                        clip = (
+                            root
+                            .with_position(pos)
+                            .with_duration(new_dur)
+                            .with_start(new_start_in_seg)
+                        )
 
-                seg_clips.append(clip)
+                    seg_clips.append(clip)
+                except Exception as e:
+                    print(f"[visual] ⚠️ Skipping clip {desc['path']}: {e}")
+                    continue
 
             for ov in overlays:
                 sliced = self._clip_to_segment(ov, t, seg_end)

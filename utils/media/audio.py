@@ -2,8 +2,9 @@ from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
 from utils.core.settings import SCRIPT_LENGTH
 from utils.core.edit import open_ai_generation, open_ai_tts, inworld_tts, create_srt_from_transcription, transcribe_audio
 
-from moviepy import AudioFileClip, concatenate_audioclips
+from moviepy import AudioFileClip, concatenate_audioclips, afx
 import os
+import random
 from dotenv import load_dotenv
 from datetime import datetime
 import re
@@ -97,8 +98,11 @@ class Audio():
 
         for i, chunk in enumerate(chunks):
             output_file = f"{paths['audio_dir']}/part_{i}.wav"
-            inworld_tts(chunk, output_file, id="Alex", model="inworld-tts-1.5-mini", temperature=0.9)
-            all_parts.append(AudioFileClip(output_file))
+            inworld_tts(chunk, output_file, id="Brian", model="inworld-tts-1.5-mini", temperature=0.9)
+            sign = random.choice([-1, 1])
+            multiplier = 1.0 + sign * random.uniform(0.02, 0.06)
+            clip = AudioFileClip(output_file).with_effects([afx.MultiplyVolume(multiplier)])
+            all_parts.append(clip)
 
         print()
 

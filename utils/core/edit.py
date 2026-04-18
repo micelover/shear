@@ -169,7 +169,7 @@ def inworld_tts(text, output_path, id="Alex", model="inworld-tts-1.5-max", tempe
     "voiceId": id,
     "modelId": model,
     "timestampType": "WORD",
-    # "temperature": temperature
+    "temperature": temperature,
     }
 
     response = requests.post(url, json=payload, headers=headers)
