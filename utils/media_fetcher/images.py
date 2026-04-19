@@ -1,5 +1,5 @@
 from utils.core.settings import BACKGROUND_LIMITS
-from utils.core.edit import generate_uuid_name, open_ai_edit_img, open_ai_generation, crop_fit
+from utils.core.edit import generate_uuid_name, gemini_edit_img, open_ai_generation, crop_fit
 from utils.core.config import UTILS_PATH
 
 from serpapi import GoogleSearch
@@ -62,7 +62,7 @@ def _download_and_validate_image(url, out_dir, product_type: str = "", min_width
         os.makedirs(out_dir, exist_ok=True)
         img.save(work_path, "JPEG", quality=90)
 
-        open_ai_edit_img(_remove_bg_prompt, [work_path], cutout_path)
+        gemini_edit_img(_remove_bg_prompt, [work_path], cutout_path)
 
         prompt = _cutout_check_prompt.replace("{product_type}", product_type or "product")
         result = open_ai_generation(

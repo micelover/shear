@@ -1,5 +1,5 @@
 from utils.core.config import DIR_PATH, DATA_PATH, SOURCE_PATH, UTILS_PATH
-from utils.core.edit import generate_uuid_name, open_ai_generation, google_shopping_images, download_image, open_ai_edit_img, crop_fit
+from utils.core.edit import generate_uuid_name, open_ai_generation, google_shopping_images, download_image, gemini_edit_img, crop_fit
 from utils.thumbnail.verify import verify_image
 
 from PIL import Image, UnidentifiedImageError
@@ -33,7 +33,7 @@ def process_single_image(url, product_type: str = ""):
             os.remove(work_path)
             return None
 
-        open_ai_edit_img(remove_bg_prompt, [work_path], cutout_path)
+        gemini_edit_img(remove_bg_prompt, [work_path], cutout_path)
 
         prompt = cutout_check_prompt.replace("{product_type}", product_type or "product")
         result = open_ai_generation(prompt,
